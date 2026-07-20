@@ -15,6 +15,7 @@
 5. XML 包含敏感資料，所有解析與比較必須在 client-side 進行；不可上傳、儲存或傳送 XML 內容。
 6. 密碼雜湊、VPN 金鑰、SNMP community 等敏感內容不可明文顯示。
 7. Excel 需要摘要及各項目明細，且應能清楚辨別差異。
+8. 僅存在 A 或 B 的設定必須顯示該端的實際參數與值；不可只顯示「存在」。
 
 ## 比對項目
 
@@ -26,6 +27,7 @@
 
 - 項目 1 要完整檢查 HA 的 enabled、mode、group、priority、preemptive、peer、HA1/2/3、Link Monitor、Path Monitor 與 HA netmask。
 - 項目 2 必須檢查 Permitted IP。
+- 項目 2 的 `permitted-ip` 必須將每個 `<entry name="IP/網段">` 視為獨立參數；畫面必須能直接列出 A、B 各自主機的完整 IP 清單，而非只顯示差異筆數。
 - 項目 3 必須涵蓋 Timezone、Update Server、SSL/TLS、vSys Count、DNS、NTP、AAA、SNMP、Syslog、Logging、HIP Match 與指定設定名稱。
 - 項目 4 必須涵蓋 Management／Interface Management 的 Services、Permitted IP，及 Zone Protection 的 flood、recon、default 相關設定。
 - 項目 5 必須列出 A、B XML 的所有 Interface 設定。
@@ -38,4 +40,5 @@
 - `same`：值相同。
 - `moved`：規則在兩端位置不同，是雙機核對提示而非錯誤。
 - shared 物件與 vSys／Device Group 同名時，以 scope 內物件優先；此規則應在結果中持續清楚表達。
-
+- 左側的數字是差異筆數，不可被設計成或誤導為單邊參數總數。
+- 差異摘要應使用簡短繁體中文，優先說明最常見欄位及其 A→B 值變更，例如 Next Hop IP 的替換。
