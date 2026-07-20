@@ -1,0 +1,86 @@
+項目	比較大綱	修正說明
+1	設備&HA資訊	"需要檢查 以下字串
+項目	字串
+Device	Hostname
+Mgmt	MGMT IP
+Mgmt	Mask
+Mgmt	Gateway
+HA	Enabled
+HA	Mode
+HA	Group ID
+HA	Device Priority
+HA	Preemptive
+HA	Peer IP
+HA	Peer IP Backup
+HA	Passive Link State
+HA	Config Sync
+HA Interface	HA1 Port
+HA Interface	HA1 IP
+HA Interface	HA1-Backup Port
+HA Interface	HA1-Backup IP
+HA Interface	HA2 Port
+HA Interface	HA2 IP
+HA Interface	HA2-Backup Port
+HA Interface	HA2-Backup IP
+HA Interface	HA3 Port
+HA Interface	HA3 IP
+Link Monitor	enabled
+Link Monitor	group[Link monitor] enable
+Link Monitor	group[Link monitor] member
+Link Monitor	group[Link monitor] failure
+Path Monitor	enabled
+HA Netmask	HA1 Netmask
+HA Netmask	HA1 Backup Netmask
+HA Netmask	HA2 Netmask
+HA Netmask	HA2 Backup Netmask"
+2	MGT存取設定	要檢查Permitted IP
+3	系統設定	"要檢查
+項目	字串
+System	Timezone
+System	Update Server
+System	SSL/TLS Profile
+vSys	vSys Count
+DNS	Primary
+DNS	Secondary
+NTP	Primary
+NTP	Secondary
+AAA	Radius
+AAA	TACACS+
+AAA	LDAP
+SNMP	SNMP
+SNMP	SNMP Trap Profile
+Syslog Profile	Syslog-Server_Arcsight
+Syslog Profile	ArcSight
+Syslog Profile	Splunk-NSLI
+Syslog Profile	Firemon
+Logging	Email Profile
+Logging	HTTP Profile
+Logging	Netflow Profile
+Logging	Log Forwarding Profiles
+LogFwd: Syslog-forwarding-01	Syslog-forwarding-01-traffic
+HIP Match	hipmatch-any
+Config	algosec
+Config	config-any
+System	system-infomational
+System	system-low
+System	system-medium
+System	system-high
+System	system-critical
+System	Firemon"
+4	Network Profiles	"需檢查 
+項目	字串
+
+Management	Services
+Management	Permitted IP
+Interface MGT	Services
+Interface MGT	Permitted IP
+PA1400_Zone_Protection	Flood: tcp-syn
+PA1400_Zone_Protection	Flood: udp
+PA1400_Zone_Protection	Flood: icmp
+PA1400_Zone_Protection	Flood: icmpv6
+PA1400_Zone_Protection	Flood: other-ip
+PA1400_Zone_Protection	Recon/Net/Packet
+default	Action
+default	Interval
+default	Threshold"
+5	Interface對應表	需列出兩份XML的Interface設定

@@ -1,0 +1,37 @@
+﻿項目,比較大綱,說明
+1,設備&HA資訊,主機名稱、管理IP、HA 高可用設定
+2,MGT存取設定,管理帳號、認證、密碼複雜度、管理埠
+3,系統設定,時區、DNS/NTP、SNMP、Syslog、Log 設定
+4,Network Profiles,介面管理、Zone Protection、Monitor 設定
+5,Interface對應表,Interface 資訊
+6,Routing Table,靜態路由比對
+7,IKE Crypto Profiles,IKE 加密設定檔
+8,IPSec Crypto Profiles,IPSec 加密設定檔
+9,IKE Gateway,IKE 閘道
+10,IPSec Tunnel,IPSec 通道
+11,Object 差異總表,物件差異彙總
+12,Address,位址物件
+13,Address-Group,位址群組
+14,Service,服務物件
+15,Service-Group,服務群組
+16,Schedule,排程
+17,Tag,標籤
+18,Application,應用程式
+19,Application-Group,應用程式群組
+20,Custom-URL,自訂 URL 分類
+21,External-List,外部動態清單
+22,Policy差異總表,政策差異彙總
+23,Security Rules,安全規則
+24,Security順序,安全規則順序比對
+25,NAT Rules,NAT 規則
+26,NAT順序,NAT 規則順序比對
+27,QoS Rules,QoS 規則
+28,QoS順序,QoS 規則順序比對
+29,App-Override Rules,應用覆寫規則
+30,App-Override順序,應用覆寫順序
+31,PBF Rules,策略路由規則
+32,PBF順序,策略路由順序
+33,Decryption Rules,解密規則
+34,Decryption順序,解密順序
+35,DoS Rules,DoS 防護規則
+36,DoS順序,DoS 順序
