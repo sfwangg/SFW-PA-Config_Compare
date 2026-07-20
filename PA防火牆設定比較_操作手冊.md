@@ -13,7 +13,7 @@
 在檔案總管開啟以下資料夾：
 
 ```text
-E:\User\S.F.Wang\Dropbox\AI_project\工具開發\PA設定比較
+C:\User\S.F.Wang\AI_project\PA設定比較
 ```
 
 在資料夾空白處按住 `Shift` 並按滑鼠右鍵，選擇「在這裡開啟 PowerShell 視窗」或「在終端機中開啟」。
@@ -60,8 +60,8 @@ Local: http://localhost:3001/
 測試檔案位於：
 
 ```text
-CONFIG\A-VER\1150706_DCSSG_189.xml
-CONFIG\B-VER\10.63.180.53.xml
+CONFIG\A-VER\1150706_G_189.xml
+CONFIG\B-VER\10.1.110.153.xml
 ```
 
 ## 5. 如何閱讀結果
