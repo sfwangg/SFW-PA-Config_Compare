@@ -553,6 +553,7 @@ export default function Home() {
           <p className="sub">
             兩份設定檔只在此瀏覽器記憶體中解析，不會上傳或儲存。
           </p>
+          <p className="last-edited">最後編輯時間：2026-07-21 02:39</p>
         </div>
         <button className="excel" onClick={exportXlsx} disabled={!rows.length}>
           下載 Excel 報表
@@ -773,6 +774,7 @@ export default function Home() {
           </section>
         </>
       )}
+      <footer>Powered by Jeff.wang</footer>
     </main>
   );
 }

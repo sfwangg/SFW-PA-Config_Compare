@@ -27,13 +27,19 @@
 - Objects：Address、Address Group、Service、Tag、Application、External List 等。
 - Policies：Security、NAT、QoS、PBF、Decryption、DoS 與規則順序。
 
-## 環境需求
+## 免安裝離線版（建議）
+
+直接開啟專案根目錄的 [index.html](./index.html) 即可使用，不需要 Node.js、網頁伺服器或網路連線。
+
+請勿移動或刪除 `lib/xlsx.full.min.js`；此檔案提供離線 Excel 匯出功能。
+
+## 開發環境需求
 
 - Windows、macOS 或 Linux
 - Node.js 22 以上（建議 LTS）
 - 支援現代 JavaScript 的瀏覽器，例如 Microsoft Edge、Google Chrome
 
-## 安裝與啟動
+## 開發版安裝與啟動
 
 在專案根目錄執行：
 
