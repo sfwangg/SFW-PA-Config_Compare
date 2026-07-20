@@ -1,98 +1,97 @@
-# vinext-starter
+# PA 防火牆設定比較工具
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+比較兩份 Palo Alto Networks 防火牆 XML 設定檔的純前端網頁工具，適合雙機 HA 核對、設定稽核與變更檢查。
 
-## Prerequisites
+> XML 設定檔只會在使用者瀏覽器中讀取與比對，不會上傳至任何伺服器。
 
-- Node.js `>=22.13.0`
+## 功能
 
-## Quick Start
+- 上傳兩份 PA XML 設定檔，對等比較來源 A 與來源 B。
+- 自動識別 Hostname、設定版本、vSys 與 Panorama Device Group。
+- 提供 36 項比對導覽，涵蓋設備／HA、MGT、系統、Network、路由、VPN、物件與政策。
+- 支援「一致、變更、僅存在 A、僅存在 B、順序提示」五種狀態。
+- 完整稽核模式：保留一致項目，也可切換為僅看差異。
+- 支援搜尋與狀態篩選。
+- 匯出 Excel：摘要頁與 36 個明細工作表。
+- 自動遮罩密碼雜湊、金鑰、SNMP community 等敏感資訊。
 
-```bash
-npm install
-npm run dev
-npm run build
+## 支援的重點範圍
+
+- 設備與 HA：Hostname、管理設定、HA group／介面／監控等設定。
+- MGT：帳號與 Permitted IP。
+- 系統：Timezone、DNS、NTP、SNMP、Logging、vSys 數量等。
+- Network Profiles：Interface Management、Zone Protection、Monitor Profile。
+- Interface：Ethernet、Loopback、VLAN、Tunnel。
+- Routing：Static Route。
+- VPN：IKE/IPSec Crypto Profile、IKE Gateway、IPSec Tunnel。
+- Objects：Address、Address Group、Service、Tag、Application、External List 等。
+- Policies：Security、NAT、QoS、PBF、Decryption、DoS 與規則順序。
+
+## 環境需求
+
+- Windows、macOS 或 Linux
+- Node.js 22 以上（建議 LTS）
+- 支援現代 JavaScript 的瀏覽器，例如 Microsoft Edge、Google Chrome
+
+## 安裝與啟動
+
+在專案根目錄執行：
+
+```powershell
+npm.cmd install
+npm.cmd run dev -- --host 127.0.0.1
 ```
 
-This starter does not use `wrangler.jsonc`.
+終端機會顯示本機網址，例如：
 
-## Included Shape
-
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
-
-## Workspace Auth Headers
-
-OpenAI workspace sites can read the current user's email from
-`oai-authenticated-user-email`.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
+```text
+Local: http://localhost:3001/
 ```
 
-## Optional Dispatch-Owned ChatGPT Sign-In
+請以終端機顯示的網址為準；若 `3000` 已被使用，系統可能自動改為 `3001`、`3002` 或其他連接埠。
 
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
+詳細操作請參閱 [操作手冊](./PA防火牆設定比較_操作手冊.md)。
 
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
+## 使用方式
 
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
+1. 在「來源 A」選擇第一份 PA XML。
+2. 在「來源 B」選擇第二份 PA XML。
+3. 如有多 vSys／Device Group，選擇 A、B 的對應範圍。
+4. 點選「開始比對」。
+5. 從左側選擇比對項目，利用搜尋或狀態篩選查看結果。
+6. 點選「下載 Excel 報表」產生稽核檔案。
 
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
+## 狀態定義
 
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
+| 狀態 | 說明 |
+|---|---|
+| 一致 | A 與 B 的設定值相同。 |
+| 變更 | A、B 都有該設定，但內容不同。 |
+| 僅存在 A | 設定只存在於來源 A。 |
+| 僅存在 B | 設定只存在於來源 B。 |
+| 順序提示 | 規則內容不一定不同，但排列位置不同；雙機核對時為提示而非錯誤。 |
 
-## Useful Commands
+## 專案文件
 
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
+- [設計文件](./PA防火牆設定比較_設計文件.md)
+- [操作手冊](./PA防火牆設定比較_操作手冊.md)
+- [開發計畫](./PLAN.md)
+- [系統架構](./ARCHITECTURE.MD)
+- [工作紀錄](./PROGRESS.MD)
+- [需求與長期知識](./MEMORY.MD)
 
-## Learn More
+## 資安與資料處理
 
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+- `CONFIG/` 目錄存放本機測試 XML，已由 Git 排除，不會提交至 GitHub。
+- XML 內容不會傳至後端、資料庫或第三方服務。
+- 敏感欄位會以遮罩顯示，避免在畫面與 Excel 報表洩漏內容。
+
+## 已知限制與後續規劃
+
+- Panorama 的 `pre-rulebase`／`post-rulebase` 仍需進一步完整擷取。
+- Excel 已支援摘要與多工作表；進階儲存格色彩與超連結仍可持續加強。
+- 應持續使用不同 PAN-OS 版本與實際設定檔驗證全部 36 項擷取結果。
+
+## 授權
+
+尚未指定授權條款；如需公開發布或供其他團隊使用，請補上適用的 License。
