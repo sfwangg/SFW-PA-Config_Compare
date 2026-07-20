@@ -25,10 +25,19 @@
 - 項目 5：修正 Interface 類別的巢狀 `entry` 搜尋，涵蓋 ethernet／loopback／vlan／tunnel。
 - 項目 6：改為擷取 static route entry。
 
+## 2026-07-21：比對結果可讀性與 MGT Permitted IP 補強
+
+- #1、#2、#3 的責任範圍分離，避免整段 `deviceconfig/system` 導致設備、MGT、系統設定重複稽核。
+- #2 MGT 的 `permitted-ip` 改為讀取每個直接子節點 `entry@name`。
+- 在 #2 中新增 A、B 各自的 Permitted IP 清單，讓每一個 IP／網段可直接查看。
+- 移除容易誤導的 Permitted IP 筆數摘要欄；左側差異數維持只表示差異，不代表參數總數。
+- 「僅存在 A/B」由單一「存在」狀態改為逐欄位顯示實際設定值。
+- 各項目標題下加入「差異摘要」，可自動說明最常見的欄位變更與 A→B 值。
+- #11、#22 左側導覽改為粗體黑色，強化兩個彙總項目的辨識度。
+
 ## 已知限制
 
 - Dropbox 可能鎖定 `dist` 產物，造成 production build 清理舊產物時失敗；不影響以開發模式啟動與使用。
 - Excel 目前可輸出多分頁與篩選範圍，但差異儲存格的進階色彩樣式待加強。
 - Panorama pre-rulebase／post-rulebase 尚未完整接入。
 - 尚未逐一以四組範例 XML 對 36 項比對結果進行人工驗收。
-

@@ -54,9 +54,17 @@ type Row = {
 
 - Scalar：系統、管理、HA 等設定攤平成 dotted path，逐欄位比較。
 - Keyed collection：以 PA XML 的 `entry@name` 為 key，比較每個物件的扁平欄位。
+- `permitted-ip` 特例：逐一讀取直接子節點 `entry@name`，每個 IP／網段都是獨立參數；同時提供 A、B 來源清單，方便核對完整性。
 - Sequence：政策規則依名稱比較位置；內容差異與順序差異分開呈現。
 - Shared + scope：物件類設定先取 `shared`，再以選取的 vSys／Device Group 覆寫同名物件。
 - 敏感欄位：欄位名稱含 `phash`、`key`、`community`、`password` 時，畫面與報表顯示遮罩值。
+- 僅存在 A/B：具名物件僅存在於一端時，將其扁平化欄位逐列輸出；存在端顯示實值，另一端顯示 `—`。
+
+## 結果呈現設計
+
+- 差異摘要：依選取項目的 `changed` 結果分組，找出數量最多的欄位與最常見 A→B 值組合；並附帶僅存在 A/B 的筆數。
+- Permitted IP 清單：在項目 #2 中分別列出 A、B 來源的全部 IP／網段，不以差異數取代完整清單。
+- 左側導覽：顯示各項差異筆數；#11 Object 差異總表與 #22 Policy 差異總表以粗體黑色標示。
 
 ## XML 範圍
 
@@ -86,4 +94,3 @@ npm.cmd run dev -- --host 127.0.0.1
 ```
 
 以終端機輸出的 `Local` 網址開啟工具。詳見 `PA防火牆設定比較_操作手冊.md`。
-
