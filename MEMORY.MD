@@ -1,44 +1,36 @@
-# 長期知識與需求紀錄
+# 長期知識與需求
 
-## 產品定位
+## 使用情境
 
-- 名稱：PA 防火牆設定比較工具。
-- 對象：防火牆維運、資安稽核與雙機 HA 核對人員。
-- 主要用途：比較兩份 Palo Alto XML 設定檔，產生可稽核的逐項結果與 Excel 報表。
+- 使用者需比較兩份 Palo Alto 防火牆 XML 設定檔。
+- 目標使用者可不安裝 Node.js；優先交付直接開啟的 `index.html` 離線版。
+- XML 僅在本機瀏覽器解析，不應傳送到外部服務。
 
-## 不可違反的需求
+## 不可省略的需求
 
-1. 報表與介面使用繁體中文。
-2. A／B 為對等比較，不以「新增／刪除」暗示任一端是新版本。
-3. 完整稽核：一致項目不可省略，畫面與 Excel 都必須保留。
-4. 支援多 vSys 與 Panorama Device Group；使用者可選擇 A、B 對應範圍。
-5. XML 包含敏感資料，所有解析與比較必須在 client-side 進行；不可上傳、儲存或傳送 XML 內容。
-6. 密碼雜湊、VPN 金鑰、SNMP community 等敏感內容不可明文顯示。
-7. Excel 需要摘要及各項目明細，且應能清楚辨別差異。
-8. 僅存在 A 或 B 的設定必須顯示該端的實際參數與值；不可只顯示「存在」。
+- 比對範圍依 `比對項目.csv` 的 36 個分類。
+- A/B XML 可選擇 vSys 或 Panorama Device Group 範圍。
+- 支援差異篩選、狀態篩選、搜尋與 Excel 匯出。
+- `CONFIG/` 含測試用 XML，絕不可上傳至 GitHub。
+- README 與操作文件採繁體中文。
 
-## 比對項目
+## MGT Permitted IP 規則
 
-需求來源為 `比對項目.csv`，共 36 項：設備／HA、MGT、系統、Network Profiles、Interface、Routing、VPN、Object、Policy 與六種政策的順序比對。
+- XML 路徑內 `<permitted-ip>` 到 `</permitted-ip>` 的所有 `<entry name="IP/網段">` 都必須列出。
+- 每一個 entry name 是一筆獨立參數，而不是只統計差異數量。
+- 畫面須能看見 A、B 主機各自全部 Permitted IP；缺少的一端以 `—` 表示。
+- 不應以「Permitted IP 白名單筆數」作為單獨資訊欄。
 
-## 近期追加需求
+## 顯示規則
 
-需求來源為 `需修正項目.txt`：
+- `onlyA` / `onlyB` 不可只顯示「存在」；必須顯示實際設定欄位和值。
+- 表格要提供簡短的主要差異描述，例如常見 IP 由哪個值改為哪個值。
+- 左側第 11 項「Object 差異總表」與第 22 項「Policy差異總表」需以黑色、粗體、斜體顯示。
+- 「僅看差異」的核取方塊與文字需緊鄰，不能受搜尋輸入框的固定寬度影響而遮擋。
+- 頁首顯示最後編輯時間；頁尾固定顯示 `Powered by Jeff.wang`。
 
-- 項目 1 要完整檢查 HA 的 enabled、mode、group、priority、preemptive、peer、HA1/2/3、Link Monitor、Path Monitor 與 HA netmask。
-- 項目 2 必須檢查 Permitted IP。
-- 項目 2 的 `permitted-ip` 必須將每個 `<entry name="IP/網段">` 視為獨立參數；畫面必須能直接列出 A、B 各自主機的完整 IP 清單，而非只顯示差異筆數。
-- 項目 3 必須涵蓋 Timezone、Update Server、SSL/TLS、vSys Count、DNS、NTP、AAA、SNMP、Syslog、Logging、HIP Match 與指定設定名稱。
-- 項目 4 必須涵蓋 Management／Interface Management 的 Services、Permitted IP，及 Zone Protection 的 flood、recon、default 相關設定。
-- 項目 5 必須列出 A、B XML 的所有 Interface 設定。
+## 維護注意事項
 
-## 名詞約定
-
-- `onlyA`：只存在來源 A。
-- `onlyB`：只存在來源 B。
-- `changed`：兩端皆存在，但值不同。
-- `same`：值相同。
-- `moved`：規則在兩端位置不同，是雙機核對提示而非錯誤。
-- shared 物件與 vSys／Device Group 同名時，以 scope 內物件優先；此規則應在結果中持續清楚表達。
-- 左側的數字是差異筆數，不可被設計成或誤導為單邊參數總數。
-- 差異摘要應使用簡短繁體中文，優先說明最常見欄位及其 A→B 值變更，例如 Next Hop IP 的替換。
+- 離線版依賴 `lib/xlsx.full.min.js` 進行 Excel 匯出；移動或發佈時必須與 `index.html` 一起保留。
+- React 版和離線版若同時保留，調整比較規則時應同步檢查兩者。
+- 密碼、金鑰與 community 等敏感值需遮罩後再顯示或匯出。

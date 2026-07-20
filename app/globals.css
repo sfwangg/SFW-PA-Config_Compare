@@ -47,6 +47,8 @@ h2 {
   color: var(--muted);
   margin: 9px 0 0;
 }
+.last-edited { margin: 8px 0 0; color: #76869a; font-size: 12px; }
+footer { padding: 28px 0 4px; color: #718096; font-size: 12px; text-align: center; }
 .upload-card,
 .workspace,
 article {
@@ -188,6 +190,7 @@ aside button.active {
 }
 aside button.summary-nav {
   color: #000;
+  font-style: italic;
   font-weight: 700;
 }
 aside button.summary-nav.active { color: #000; }
@@ -233,6 +236,8 @@ article {
   border-left: 3px solid var(--blue);
   background: #f4f8fc;
   color: #40566e;
+  font-style: italic;
+  font-weight: 700;
   font-size: 13px;
   line-height: 1.55;
 }

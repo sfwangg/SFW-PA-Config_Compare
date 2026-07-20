@@ -1,96 +1,60 @@
-# 系統架構與設計說明
+# 系統架構與設計
 
-## 架構概覽
+## 執行模式
 
-本系統為 React／Vite（Vinext）單頁應用程式。所有設定檔在瀏覽器記憶體中透過 `File.text()` 與 `DOMParser` 解析，沒有 API、資料庫或伺服器端 XML 處理流程。
+系統提供兩種前端入口：
+
+- `index.html`：免安裝離線版。使用瀏覽器的 File API 與 DOMParser，在本機解析 XML；雙擊檔案即可使用。
+- React/Vinext 開發版：以 `app/page.tsx` 與 `app/globals.css` 維護，適合後續開發與測試。
+
+兩種模式均在瀏覽器端處理資料，不會上傳 XML 設定檔。
+
+## 資料流程
 
 ```text
-使用者選取 XML A、XML B
-        ↓
-File API / DOMParser
-        ↓
-偵測 Hostname、版本、vSys、Device Group
-        ↓
-擷取器：XML 節點 → 正規化 Map
-        ↓
-比對器：Scalar / Keyed collection / Sequence
-        ↓
-Rows（統一結果列）
-   ├─ 網頁摘要、項目導覽、篩選表格
-   └─ XLSX 匯出：摘要 + 36 個明細工作表
+XML A / XML B
+  → File API 讀取
+  → DOMParser 解析 XML
+  → 選取 vSys / Device Group 範圍
+  → 將設定正規化為比較列（Row）
+  → 判斷一致、變更、僅存在 A、僅存在 B
+  → 表格、分類導覽、差異摘要、Excel 匯出
 ```
 
-## 主要程式
+## 核心資料列
 
-| 檔案 | 職責 |
+每一筆比較結果包含：分類編號、分類名稱、物件名稱、參數路徑、狀態、A 值、B 值與差異說明。
+
+狀態定義：
+
+- `same`：兩端設定一致。
+- `changed`：兩端都有設定，但值不同。
+- `onlyA`：只存在 A；A 欄必須顯示完整實際值。
+- `onlyB`：只存在 B；B 欄必須顯示完整實際值。
+- `moved`：同一設定因範圍或順序差異而被辨識為位置改變。
+
+## XML 比較策略
+
+- 一般單值設定以 XML dotted path 對照。
+- 含多筆物件的集合以 `<entry name="…">` 的 name 為鍵值比對。
+- MGT `permitted-ip` 直接把每一個 `<entry name="IP/網段">` 視為一筆參數，因此能分別顯示 A、B 全部 IP/網段。
+- 密碼、金鑰、community 等敏感欄位以遮罩值顯示。
+- 支援 shared、vSys 與 Panorama Device Group 的設定範圍。
+
+## 主要檔案
+
+| 檔案 | 用途 |
 |---|---|
-| `app/page.tsx` | 上傳、XML 解析、擷取、比對、介面狀態與 Excel 匯出。 |
-| `app/globals.css` | 響應式版面、狀態色彩與表格樣式。 |
-| `app/layout.tsx` | 網頁語系與 Metadata。 |
-| `比對項目.csv` | 36 個稽核項目的需求清單。 |
-| `需修正項目.txt` | 使用端指定的項目 1 至 5 加強需求。 |
-| `CONFIG/` | A/B 測試用 PA XML。 |
+| `index.html` | 使用者直接開啟的離線版程式與介面。 |
+| `lib/xlsx.full.min.js` | 離線 Excel 匯出所需的 SheetJS 程式庫。 |
+| `app/page.tsx` | React 開發版的比較邏輯與介面。 |
+| `app/globals.css` | React 開發版樣式。 |
+| `比對項目.csv` | 36 個比較分類的需求依據。 |
+| `CONFIG/` | 測試 XML；由 Git 忽略。 |
 
-## 資料模型
+## 介面設計重點
 
-每一筆結果統一為：
-
-```ts
-type Row = {
-  item: number;
-  category: string;
-  key: string;
-  field: string;
-  status: "same" | "changed" | "onlyA" | "onlyB" | "moved";
-  valueA: string;
-  valueB: string;
-  description: string;
-};
-```
-
-`status` 使用中性語意：`onlyA`／`onlyB` 表示只存在其中一端，不表示新增或刪除的時間順序。
-
-## 比對策略
-
-- Scalar：系統、管理、HA 等設定攤平成 dotted path，逐欄位比較。
-- Keyed collection：以 PA XML 的 `entry@name` 為 key，比較每個物件的扁平欄位。
-- `permitted-ip` 特例：逐一讀取直接子節點 `entry@name`，每個 IP／網段都是獨立參數；同時提供 A、B 來源清單，方便核對完整性。
-- Sequence：政策規則依名稱比較位置；內容差異與順序差異分開呈現。
-- Shared + scope：物件類設定先取 `shared`，再以選取的 vSys／Device Group 覆寫同名物件。
-- 敏感欄位：欄位名稱含 `phash`、`key`、`community`、`password` 時，畫面與報表顯示遮罩值。
-- 僅存在 A/B：具名物件僅存在於一端時，將其扁平化欄位逐列輸出；存在端顯示實值，另一端顯示 `—`。
-
-## 結果呈現設計
-
-- 差異摘要：依選取項目的 `changed` 結果分組，找出數量最多的欄位與最常見 A→B 值組合；並附帶僅存在 A/B 的筆數。
-- Permitted IP 清單：在項目 #2 中分別列出 A、B 來源的全部 IP／網段，不以差異數取代完整清單。
-- 左側導覽：顯示各項差異筆數；#11 Object 差異總表與 #22 Policy 差異總表以粗體黑色標示。
-
-## XML 範圍
-
-- 設備設定：`devices/entry/deviceconfig`。
-- Network：`devices/entry/network`。
-- vSys：`devices/entry/vsys/entry`。
-- Panorama Device Group：`devices/entry/device-group/entry`。
-- 共用物件：`shared`。
-
-目前已特別處理 HA、MGT Permitted IP、系統與 Logging、Network Profiles、所有 Interface 類型及 Static Route。Panorama 的 pre/post rulebase 仍是待補強範圍。
-
-## Excel 設計
-
-採用瀏覽器版 SheetJS (`xlsx`) 建立 `.xlsx`：
-
-- `封面摘要`：來源資訊及每項目結果統計。
-- `1-設備&HA資訊` 至 `36-DoS順序`：每項一張工作表。
-- 固定欄位：類別、名稱／物件、參數、狀態、A 值、B 值、差異說明。
-
-## 執行方式
-
-Windows PowerShell：
-
-```powershell
-npm.cmd install
-npm.cmd run dev -- --host 127.0.0.1
-```
-
-以終端機輸出的 `Local` 網址開啟工具。詳見 `PA防火牆設定比較_操作手冊.md`。
+- 上方提供 A/B XML 上傳、範圍選擇與開始比對。
+- 左側顯示 36 個分類與差異數量；第 11、22 類用黑色粗體斜體強調。
+- 右側表格提供「僅看差異」、狀態篩選、搜尋與差異摘要。
+- 「僅看差異」核取方塊採自動寬度，避免文字被輸入欄位的固定寬度遮住。
