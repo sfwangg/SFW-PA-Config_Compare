@@ -17,9 +17,10 @@ body {
   font-family: Arial, "Microsoft JhengHei", sans-serif;
 }
 main {
-  max-width: 1500px;
+  width: 100%;
+  max-width: none;
   margin: auto;
-  padding: 38px 34px 60px;
+  padding: 38px clamp(20px, 2.5vw, 56px) 60px;
 }
 header {
   display: flex;
@@ -273,6 +274,31 @@ article {
   overflow: auto;
   border-top: 1px solid var(--line);
 }
+.security-rules { display: grid; gap: 16px; padding: 18px 24px 24px; }
+.security-hint { margin: 0; color: var(--muted); font-size: 12px; }
+.security-rule { overflow: hidden; border: 1px solid var(--line); border-radius: 8px; }
+.security-rule > header { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; margin: 0; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: #f5f8fb; }
+.security-rule h3 { font-size: 14px; }
+.security-rule header span { color: var(--muted); font-size: 12px; }
+.security-scroll { overflow: auto; }
+.security-table { min-width: max-content; }
+.security-table th { min-width: 170px; vertical-align: top; }
+.security-table th:first-child { min-width: 110px; }
+.security-table .field-head { cursor: grab; user-select: none; }
+.security-table .field-head::before { content: "⠿ "; color: #8b9aac; }
+.security-table td { min-width: 170px; max-width: 280px; }
+.security-value { display: grid; gap: 5px; }
+.security-value b { color: #536479; font-size: 11px; }
+.security-value p { margin: 0; white-space: pre-wrap; }
+.security-value .desc { color: var(--muted); font-size: 11px; }
+.security-instruction th, .security-instruction td { background: #f7fafc; }
+.security-instruction td { color: #40566e; }
+.security-cli { margin: 0; color: #24384e; font: 12px/1.55 Consolas, "Microsoft JhengHei", monospace; white-space: pre-wrap; }
+.security-status { display: inline-block; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px; }
+.security-status.same { background: #edf0f2; color: #7c8794; }
+.security-status.changed { background: #fff1bd; color: #835b00; }
+.security-status.onlyA, .security-status.onlyB { background: #ffe0e0; color: #b42318; }
+.security-status.moved { background: #eee5f7; color: #71508a; }
 table {
   width: 100%;
   border-collapse: collapse;

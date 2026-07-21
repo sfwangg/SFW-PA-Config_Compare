@@ -88,9 +88,17 @@ CONFIG\B-VER\10.1.110.153.xml
 - 狀態選單：只顯示指定狀態。
 - 搜尋欄：依物件名稱、欄位或說明搜尋。
 
+### Security Rules 專用檢視
+
+選擇第 23 項「Security Rules」時，每個 Rule Name 會獨立成一個區塊，參數以橫向欄位呈現。可拖曳欄位標題調整顯示順序，也可啟用「忽略 to／from／profile 成員」排除 `to.member`、`from.member` 與 `profile-setting.group.member`。
+
+每個 Rule 最下方的「補充指令」會依 A/B 差異產生用於 B 設備的 PA CLI。請先檢閱命令與實際設定，再於 B 設備的 SSH 連線中執行；敏感欄位只會提示人工設定。
+
 ## 7. 匯出 Excel
 
 比對完成後，點選右上方「下載 Excel 報表」。
+
+如只需要目前分類，可使用工具列的「下載本頁 Excel」。檔案會套用目前的搜尋、狀態、僅看差異與 Security Rules 忽略欄位設定。
 
 下載的 Excel 包含：
 

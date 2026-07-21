@@ -88,6 +88,36 @@ const statusText: Record<Status, string> = {
   onlyB: "僅存在 B",
   moved: "順序提示",
 };
+const cliQuote = (value: string) => `"${value.replace(/(["\\])/g, "\\$1")}"`;
+const cliPath = (field: string) =>
+  field.replace(/\[\d+\]/g, "").replace(/\.member$/, "").replace(/\./g, " ");
+const cliValue = (value: string) => {
+  const values = (value || "").split("、").filter(Boolean);
+  return values.length > 1
+    ? `[ ${values.map(cliQuote).join(" ")} ]`
+    : cliQuote(values[0] || "");
+};
+function securityCli(name: string, group: Row[]) {
+  const base = `rulebase security rules ${cliQuote(name)}`;
+  if (group.length && group.every((row) => row.status === "onlyB"))
+    return ["configure", `delete ${base}`, "# 確認後執行 commit"].join("\n");
+  const commands = ["configure"];
+  group
+    .filter((row) => row.status === "changed" || row.status === "onlyA")
+    .forEach((row) => {
+      if (/phash|key|community|password/i.test(row.field)) {
+        commands.push(`# ${row.field} 為遮罩敏感值，請手動設定`);
+        return;
+      }
+      const path = cliPath(row.field);
+      if (row.status === "changed" && row.valueB !== "—")
+        commands.push(`delete ${base} ${path}`);
+      if (row.valueA && row.valueA !== "—" && row.valueA !== "（未設定）")
+        commands.push(`set ${base} ${path} ${cliValue(row.valueA)}`);
+    });
+  commands.push("# 確認後執行 commit");
+  return commands.join("\n");
+}
 const direct = (node: Element, tag: string) =>
   Array.from(node.children).filter((x) => x.tagName === tag) as Element[];
 const findPath = (root: Element, path: string) =>
@@ -390,8 +420,11 @@ export default function Home() {
   const [rows, setRows] = useState<Row[]>([]);
   const [active, setActive] = useState(1);
   const [onlyDiff, setOnlyDiff] = useState(false);
+  const [ignoreSecurityFields, setIgnoreSecurityFields] = useState(false);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
+  const [securityFieldOrder, setSecurityFieldOrder] = useState<string[]>([]);
+  const [draggedSecurityField, setDraggedSecurityField] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const upload = async (e: ChangeEvent<HTMLInputElement>, side: "a" | "b") => {
@@ -456,10 +489,25 @@ export default function Home() {
       setBusy(false);
     }, 20);
   };
-  const activeRows = useMemo(
+  const currentRows = useMemo(
     () =>
       rows
         .filter((r) => r.item === active)
+        .filter(
+          (r) =>
+            !(
+              active === 23 &&
+              ignoreSecurityFields &&
+              ["to.member", "from.member", "profile-setting.group.member"].includes(
+                r.field,
+              )
+            ),
+        ),
+    [rows, active, ignoreSecurityFields],
+  );
+  const activeRows = useMemo(
+    () =>
+      currentRows
         .filter((r) => !onlyDiff || r.status !== "same")
         .filter((r) => filter === "all" || r.status === filter)
         .filter((r) =>
@@ -467,7 +515,7 @@ export default function Home() {
             .toLowerCase()
             .includes(query.toLowerCase()),
         ),
-    [rows, active, onlyDiff, filter, query],
+    [currentRows, onlyDiff, filter, query],
   );
   const counts = (id: number) =>
     rows.filter((r) => r.item === id && r.status !== "same").length;
@@ -484,6 +532,34 @@ export default function Home() {
     permittedIpRows
       .filter((r) => (side === "A" ? r.valueA : r.valueB) !== "—")
       .map((r) => r.key.replace("Permitted IP：", ""));
+  const securityFields = useMemo(() => {
+    const fields = [...new Set(activeRows.map((row) => row.field))];
+    return [
+      ...securityFieldOrder.filter((field) => fields.includes(field)),
+      ...fields.filter((field) => !securityFieldOrder.includes(field)),
+    ];
+  }, [activeRows, securityFieldOrder]);
+  const securityRuleGroups = useMemo(() => {
+    const groups = new Map<string, Row[]>();
+    activeRows.forEach((row) => {
+      groups.set(row.key, [...(groups.get(row.key) || []), row]);
+    });
+    return [...groups.entries()];
+  }, [activeRows]);
+  const moveSecurityField = (target: string) => {
+    if (!draggedSecurityField || draggedSecurityField === target) return;
+    setSecurityFieldOrder((current) => {
+      const order = [
+        ...current.filter((field) => securityFields.includes(field)),
+        ...securityFields.filter((field) => !current.includes(field)),
+      ];
+      const from = order.indexOf(draggedSecurityField);
+      const to = order.indexOf(target);
+      order.splice(from, 1);
+      order.splice(to, 0, draggedSecurityField);
+      return order;
+    });
+  };
   const exportXlsx = () => {
     if (!rows.length || !a || !b) return;
     const wb = XLSX.utils.book_new();
@@ -540,10 +616,36 @@ export default function Home() {
       `PA比對_${a.hostname}_vs_${b.hostname}_${new Date().toISOString().slice(0, 10)}.xlsx`,
     );
   };
+  const exportCurrentXlsx = () => {
+    if (!activeRows.length || !a || !b) return;
+    const item = ITEMS.find(([id]) => id === active)!;
+    const data = [
+      ["類別", "名稱／物件", "參數", "狀態", `${a.hostname} 值`, `${b.hostname} 值`, "差異說明", "補充指令"],
+      ...activeRows.map((row) => [
+        row.category,
+        row.key,
+        row.field,
+        statusText[row.status],
+        row.valueA,
+        row.valueB,
+        row.description,
+        active === 23
+          ? securityCli(
+              row.key,
+              activeRows.filter((candidate) => candidate.key === row.key),
+            )
+          : "",
+      ]),
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    ws["!cols"] = [{ wch: 22 }, { wch: 28 }, { wch: 28 }, { wch: 14 }, { wch: 34 }, { wch: 34 }, { wch: 52 }, { wch: 46 }];
+    ws["!autofilter"] = { ref: `A1:H${data.length}` };
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, `${active}-${item[1]}`.slice(0, 31));
+    XLSX.writeFile(wb, `PA比對_${active}-${item[1]}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  };
   const current = ITEMS.find((x) => x[0] === active)!;
-  const differenceSummary = makeDifferenceSummary(
-    rows.filter((row) => row.item === active),
-  );
+  const differenceSummary = makeDifferenceSummary(currentRows);
   return (
     <main>
       <header>
@@ -553,7 +655,7 @@ export default function Home() {
           <p className="sub">
             兩份設定檔只在此瀏覽器記憶體中解析，不會上傳或儲存。
           </p>
-          <p className="last-edited">最後編輯時間：2026-07-21 02:39</p>
+          <p className="last-edited">最後編輯時間：2026-07-21 15:59</p>
         </div>
         <button className="excel" onClick={exportXlsx} disabled={!rows.length}>
           下載 Excel 報表
@@ -682,6 +784,19 @@ export default function Home() {
                     />{" "}
                     僅看差異
                   </label>
+                  {active === 23 && (
+                    <label title="忽略 to.member、from.member、profile-setting.group.member">
+                      <input
+                        type="checkbox"
+                        checked={ignoreSecurityFields}
+                        onChange={(e) => setIgnoreSecurityFields(e.target.checked)}
+                      />{" "}
+                      忽略 to／from／profile 成員
+                    </label>
+                  )}
+                  <button type="button" onClick={exportCurrentXlsx} disabled={!activeRows.length}>
+                    下載本頁 Excel
+                  </button>
                   <select
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
@@ -742,7 +857,57 @@ export default function Home() {
                   </div>
                 </section>
               )}
-              <div className="table-wrap">
+              {active === 23 ? (
+                <div className="security-rules">
+                  <p className="security-hint">
+                    每個 Rule Name 為一組；可拖曳欄位標題（⠿）調整參數的顯示順序。
+                  </p>
+                  {securityRuleGroups.map(([name, group]) => {
+                    const fields = securityFields.filter((field) =>
+                      group.some((row) => row.field === field),
+                    );
+                    const byField = new Map(
+                      group.map((row) => [row.field, row]),
+                    );
+                    const differences = group.filter(
+                      (row) => row.status !== "same",
+                    ).length;
+                    return (
+                      <section className="security-rule" key={name}>
+                        <header>
+                          <h3>{name}</h3>
+                          <span>差異 {differences} 項／顯示 {group.length} 項</span>
+                        </header>
+                        <div className="security-scroll">
+                          <table className="security-table">
+                            <thead><tr><th>來源／項目</th>{fields.map((field) => (
+                              <th className="field-head" draggable key={field}
+                                onDragStart={() => setDraggedSecurityField(field)}
+                                onDragEnd={() => setDraggedSecurityField("")}
+                                onDragOver={(event) => event.preventDefault()}
+                                onDrop={() => moveSecurityField(field)}>{field}</th>
+                            ))}</tr></thead>
+                            <tbody>
+                              {[[a?.hostname || "A", "valueA"], [b?.hostname || "B", "valueB"]].map(([label, value]) => (
+                                <tr key={label}><th>{label}</th>{fields.map((field) => {
+                                  const row = byField.get(field)!;
+                                  return <td className={row.status} key={field}><div className="security-value"><p>{row[value as "valueA" | "valueB"] || "—"}</p></div></td>;
+                                })}</tr>
+                              ))}
+                              <tr><th>狀態／說明</th>{fields.map((field) => {
+                                const row = byField.get(field)!;
+                                return <td className={row.status} key={field}><div className="security-value"><b className={`security-status ${row.status}`}>{statusText[row.status]}</b>{row.status !== "same" && <p className="desc">{row.description}</p>}</div></td>;
+                              })}</tr>
+                              <tr className="security-instruction"><th>補充指令</th><td colSpan={fields.length}><pre className="security-cli">{securityCli(name, group)}</pre></td></tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </section>
+                    );
+                  })}
+                  {!securityRuleGroups.length && <div className="empty">沒有符合條件的結果</div>}
+                </div>
+              ) : <div className="table-wrap">
                 <table>
                   <thead>
                     <tr>
@@ -769,7 +934,7 @@ export default function Home() {
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </div>}
             </article>
           </section>
         </>

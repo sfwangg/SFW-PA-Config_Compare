@@ -13,6 +13,8 @@
 - 完整稽核模式：保留一致項目，也可切換為僅看差異。
 - 支援搜尋與狀態篩選。
 - 匯出 Excel：摘要頁與 36 個明細工作表。
+- Security Rules 以 Rule Name 分組、參數橫向顯示且可拖曳調整欄位順序；可忽略 `to.member`、`from.member` 與 `profile-setting.group.member`。
+- Security Rules 會依 A/B 差異產生對齊 B 設備的 PA CLI；也可將目前篩選的分類下載為單頁 Excel。
 - 自動遮罩密碼雜湊、金鑰、SNMP community 等敏感資訊。
 
 ## 支援的重點範圍

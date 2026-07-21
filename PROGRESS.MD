@@ -17,3 +17,7 @@
 - 新增免 Node.js 的離線版 `index.html` 與本機 `lib/xlsx.full.min.js`；已檢查離線版 JavaScript 語法。
 - 修正離線版「僅看差異」核取方塊的寬度與文字間距，避免文字遭遮擋。
 - 將第 11 項 Object 差異總表與第 22 項 Policy差異總表調整為黑色、粗體、斜體。
+- 更新最後編輯時間為 `2026-07-21 15:59`。
+- Security Rules 改為 Rule Name 分組的橫向檢視；支援欄位拖曳、忽略指定 member 欄位與狀態醒目標示。
+- 每條 Security Rule 下方新增依 A/B 差異產生的 B 設備 PA CLI；敏感欄位僅提示人工設定。
+- 新增「下載本頁 Excel」，會匯出目前分類及畫面篩選後的資料與 Security Rules CLI。

@@ -28,6 +28,9 @@
 - 左側第 11 項「Object 差異總表」與第 22 項「Policy差異總表」需以黑色、粗體、斜體顯示。
 - 「僅看差異」的核取方塊與文字需緊鄰，不能受搜尋輸入框的固定寬度影響而遮擋。
 - 頁首顯示最後編輯時間；頁尾固定顯示 `Powered by Jeff.wang`。
+- Security Rules（#23）須以 Rule Name 分組、參數橫向顯示，並可拖曳調整欄位順序；提供忽略 `to.member`、`from.member`、`profile-setting.group.member` 的開關。
+- 每條 Security Rule 最下方須顯示依 A/B 差異生成、用於在 B 設備對齊 A 設備的 PA CLI；敏感遮罩欄位不得產生可直接套用的值。
+- 可下載目前分類、目前篩選條件下的單頁 Excel；Security Rules 匯出須包含 CLI 補充指令欄。
 
 ## 維護注意事項
 

@@ -25,9 +25,10 @@
           sans-serif;
       }
       main {
-        max-width: 1500px;
+        width: 100%;
+        max-width: none;
         margin: auto;
-        padding: 30px;
+        padding: 30px clamp(20px, 2.5vw, 56px);
       }
       header,
       .card,
@@ -268,6 +269,32 @@
         overflow: auto;
         border-top: 1px solid var(--line);
       }
+      .security-rules { display: grid; gap: 16px; padding: 18px 24px 24px; }
+      .security-hint { margin: 0; color: var(--muted); font-size: 12px; }
+      .security-rule { overflow: hidden; border: 1px solid var(--line); border-radius: 8px; }
+      .security-rule > header { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; margin: 0; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: #f5f8fb; }
+      .security-rule h3 { font-size: 14px; }
+      .security-rule header span { color: var(--muted); font-size: 12px; }
+      .security-scroll { overflow: auto; }
+      .security-table { min-width: max-content; }
+      .security-table th { min-width: 170px; vertical-align: top; }
+      .security-table th:first-child { min-width: 110px; }
+      .security-table .field-head { cursor: grab; user-select: none; }
+      .security-table .field-head::before { content: "⠿ "; color: #8b9aac; }
+      .security-table .field-head.dragging { opacity: .45; }
+      .security-table td { min-width: 170px; max-width: 280px; }
+      .security-value { display: grid; gap: 5px; }
+      .security-value b { color: #536479; font-size: 11px; }
+      .security-value p { margin: 0; white-space: pre-wrap; }
+      .security-value .desc { color: var(--muted); font-size: 11px; }
+      .security-instruction th, .security-instruction td { background: #f7fafc; }
+      .security-instruction td { color: #40566e; }
+      .security-cli { margin: 0; color: #24384e; font: 12px/1.55 Consolas, "Microsoft JhengHei", monospace; white-space: pre-wrap; }
+      .security-status { display: inline-block; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px; }
+      .security-status.same { background: #edf0f2; color: #7c8794; }
+      .security-status.changed { background: #fff1bd; color: #835b00; }
+      .security-status.onlyA, .security-status.onlyB { background: #ffe0e0; color: #b42318; }
+      .security-status.moved { background: #eee5f7; color: #71508a; }
       table {
         width: 100%;
         border-collapse: collapse;
@@ -354,7 +381,7 @@
           <p class="eyebrow">OFFLINE · NO NODE.JS REQUIRED</p>
           <h1>PA 防火牆設定比較</h1>
           <p class="sub">直接開啟此檔即可使用；XML 只在本機瀏覽器中解析。</p>
-          <p class="last-edited">最後編輯時間：2026-07-21 02:39</p>
+          <p class="last-edited">最後編輯時間：2026-07-21 15:59</p>
         </div>
         <button id="export" disabled>下載 Excel 報表</button>
       </header>
@@ -401,6 +428,8 @@
             </div>
             <div class="toolbar">
               <label><input id="onlyDiff" type="checkbox" /> 僅看差異</label
+              ><label id="ignoreSecurityFieldsLabel" hidden title="忽略 to.member、from.member、profile-setting.group.member"><input id="ignoreSecurityFields" type="checkbox" /> 忽略 to／from／profile 成員</label
+              ><button id="exportCurrent" type="button">下載本頁 Excel</button
               ><select id="status">
                 <option value="all">全部狀態</option>
                 <option value="onlyA">僅存在 A</option>
@@ -414,7 +443,8 @@
           <div class="summary" id="summary"></div>
           <p class="note" id="note"></p>
           <div id="ipLists"></div>
-          <div class="table-wrap">
+          <div id="securityRules" hidden></div>
+          <div class="table-wrap" id="standardTable">
             <table>
               <thead>
                 <tr>
@@ -513,6 +543,9 @@
         sourceB = null,
         allRows = [],
         active = 1;
+      let securityFieldOrder = [], draggedSecurityField = null;
+      let displayedRows = [];
+      const ignoredSecurityFields = new Set(["to.member", "from.member", "profile-setting.group.member"]);
       const $ = (id) => document.getElementById(id),
         clean = (v) => (v || "").replace(/\s+/g, " ").trim(),
         esc = (v) =>
@@ -869,9 +902,82 @@
         return allRows.filter((x) => x.item === id && x.status !== "same")
           .length;
       }
+      function securityFields(rows) {
+        const fields = [...new Set(rows.map((x) => x.field))];
+        securityFieldOrder = securityFieldOrder.filter((x) => fields.includes(x));
+        fields.forEach((x) => {
+          if (!securityFieldOrder.includes(x)) securityFieldOrder.push(x);
+        });
+        return securityFieldOrder;
+      }
+      function cliQuote(value) {
+        return `"${String(value).replace(/(["\\])/g, "\\$1")}"`;
+      }
+      function cliPath(field) {
+        return field.replace(/\[\d+\]/g, "").replace(/\.member$/, "").replace(/\./g, " ");
+      }
+      function cliValue(value) {
+        const values = String(value || "").split("、").filter(Boolean);
+        return values.length > 1 ? `[ ${values.map(cliQuote).join(" ")} ]` : cliQuote(values[0] || "");
+      }
+      function securityCli(name, group) {
+        const base = `rulebase security rules ${cliQuote(name)}`;
+        if (group.length && group.every((row) => row.status === "onlyB"))
+          return ["configure", `delete ${base}`, "# 確認後執行 commit"].join("\n");
+        const commands = ["configure"];
+        group.filter((row) => row.status === "changed" || row.status === "onlyA").forEach((row) => {
+          if (/phash|key|community|password/i.test(row.field)) {
+            commands.push(`# ${row.field} 為遮罩敏感值，請手動設定`);
+            return;
+          }
+          const path = cliPath(row.field), value = row.valueA;
+          if (row.status === "changed" && row.valueB !== "—") commands.push(`delete ${base} ${path}`);
+          if (value && value !== "—" && value !== "（未設定）") commands.push(`set ${base} ${path} ${cliValue(value)}`);
+        });
+        commands.push("# 確認後執行 commit");
+        return commands.join("\n");
+      }
+      function renderSecurityRules(rows) {
+        const fields = securityFields(rows), groups = new Map();
+        rows.forEach((row) => {
+          if (!groups.has(row.key)) groups.set(row.key, []);
+          groups.get(row.key).push(row);
+        });
+        $("securityRules").innerHTML = !groups.size
+          ? `<div class="empty">沒有符合條件的結果</div>`
+          : `<div class="security-rules"><p class="security-hint">每個 Rule Name 為一組；可拖曳欄位標題（⠿）調整參數的顯示順序。</p>${[...groups.entries()].map(([name, group]) => {
+              const byField = new Map(group.map((row) => [row.field, row]));
+              const cols = fields.filter((field) => byField.has(field));
+              const diffs = group.filter((row) => row.status !== "same").length;
+              const values = (side) => cols.map((field) => {
+                const row = byField.get(field), value = side === "A" ? row.valueA : row.valueB;
+                return `<td class="${row.status}"><div class="security-value"><p>${esc(value || "—")}</p></div></td>`;
+              }).join("");
+              const descriptions = cols.map((field) => {
+                const row = byField.get(field);
+                return `<td class="${row.status}"><div class="security-value"><b class="security-status ${row.status}">${esc(statusText[row.status])}</b>${row.status === "same" ? "" : `<p class="desc">${esc(row.description)}</p>`}</div></td>`;
+              }).join("");
+              return `<section class="security-rule"><header><h3>${esc(name)}</h3><span>差異 ${diffs} 項／顯示 ${group.length} 項</span></header><div class="security-scroll"><table class="security-table"><thead><tr><th>來源／項目</th>${cols.map((field) => `<th class="field-head" draggable="true" data-field="${esc(field)}">${esc(field)}</th>`).join("")}</tr></thead><tbody><tr><th>${esc(sourceA.hostname)}</th>${values("A")}</tr><tr><th>${esc(sourceB.hostname)}</th>${values("B")}</tr><tr><th>狀態／說明</th>${descriptions}</tr><tr class="security-instruction"><th>補充指令</th><td colspan="${cols.length}"><pre class="security-cli">${esc(securityCli(name, group))}</pre></td></tr></tbody></table></div></section>`;
+            }).join("")}</div>`;
+        $("securityRules").querySelectorAll(".field-head").forEach((head) => {
+          head.ondragstart = () => { draggedSecurityField = head.dataset.field; head.classList.add("dragging"); };
+          head.ondragend = () => { draggedSecurityField = null; head.classList.remove("dragging"); };
+          head.ondragover = (event) => event.preventDefault();
+          head.ondrop = (event) => {
+            event.preventDefault();
+            const target = head.dataset.field;
+            if (!draggedSecurityField || draggedSecurityField === target) return;
+            const from = securityFieldOrder.indexOf(draggedSecurityField), to = securityFieldOrder.indexOf(target);
+            securityFieldOrder.splice(from, 1);
+            securityFieldOrder.splice(to, 0, draggedSecurityField);
+            render();
+          };
+        });
+      }
       function render() {
         const item = ITEMS.find((x) => x[0] === active),
-          rs = allRows.filter((x) => x.item === active),
+          rawRows = allRows.filter((x) => x.item === active),
+          rs = active === 23 && $("ignoreSecurityFields").checked ? rawRows.filter((x) => !ignoredSecurityFields.has(x.field)) : rawRows,
           only = $("onlyDiff").checked,
           status = $("status").value,
           q = $("search").value.toLowerCase(),
@@ -881,6 +987,7 @@
               (status === "all" || x.status === status) &&
               `${x.key} ${x.field} ${x.description}`.toLowerCase().includes(q),
           );
+        displayedRows = shown;
         $("nav").innerHTML = ITEMS.map(
           ([id, name]) =>
             `<button class="${id === active ? "active " : ""}${id === 11 || id === 22 ? "summary-nav" : ""}" data-id="${id}"><span>${id}. ${esc(name)}</span><em>差異 ${diffCount(id)}</em></button>`,
@@ -897,6 +1004,7 @@
         $("itemNo").textContent = "項目 " + item[0];
         $("itemTitle").textContent = item[1];
         $("summary").textContent = summary(rs);
+        $("ignoreSecurityFieldsLabel").hidden = active !== 23;
         $("note").textContent =
           `顯示 ${shown.length} 筆；${sourceA.hostname} 與 ${sourceB.hostname} 為對等比較，方向不代表新舊。`;
         $("aHead").textContent = sourceA.hostname + " 值";
@@ -920,6 +1028,10 @@
                 .map((x) => `<li>${esc(x)}</li>`)
                 .join("")}</ul></div></section>`
             : "";
+        const securityMode = active === 23;
+        $("securityRules").hidden = !securityMode;
+        $("standardTable").hidden = securityMode;
+        if (securityMode) renderSecurityRules(shown);
         $("rows").innerHTML = shown.length
           ? shown
               .map(
@@ -1001,12 +1113,28 @@
           `PA比對_${sourceA.hostname}_vs_${sourceB.hostname}_${new Date().toISOString().slice(0, 10)}.xlsx`,
         );
       }
+      function exportCurrentPage() {
+        if (!displayedRows.length) return;
+        const item = ITEMS.find((x) => x[0] === active), data = [
+          ["類別", "名稱／物件", "參數", "狀態", `${sourceA.hostname} 值`, `${sourceB.hostname} 值`, "差異說明", "補充指令"],
+          ...displayedRows.map((x) => [
+            x.category, x.key, x.field, statusText[x.status], x.valueA, x.valueB, x.description,
+            active === 23 ? securityCli(x.key, displayedRows.filter((row) => row.key === x.key)) : "",
+          ]),
+        ], ws = XLSX.utils.aoa_to_sheet(data);
+        ws["!cols"] = [{ wch: 22 }, { wch: 28 }, { wch: 28 }, { wch: 14 }, { wch: 34 }, { wch: 34 }, { wch: 52 }, { wch: 46 }];
+        ws["!autofilter"] = { ref: `A1:H${data.length}` };
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, `${active}-${item[1]}`.slice(0, 31));
+        XLSX.writeFile(wb, `PA比對_${active}-${item[1]}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      }
       ["fileA", "fileB"].forEach(
         (id) => ($(id).onchange = () => load(id === "fileA" ? "A" : "B")),
       );
       $("compare").onclick = run;
       $("export").onclick = exportExcel;
-      ["onlyDiff", "status", "search"].forEach(
+      $("exportCurrent").onclick = exportCurrentPage;
+        ["onlyDiff", "ignoreSecurityFields", "status", "search"].forEach(
         (id) => ($(id).oninput = render),
       );
     </script>
