@@ -14,6 +14,8 @@
 - 「Object 差異總表」與「Policy差異總表」在左側導覽以黑色粗體斜體標示。
 - 新增免安裝離線版：直接雙擊 `index.html` 即可使用，不需 Node.js 或網頁伺服器。
 - 頁首顯示程式最後編輯時間，頁尾顯示 `Powered by Jeff.wang`。
+- Security Rules 改為 Rule Name 分組的橫向檢視，支援欄位拖曳排序、忽略常見 member 欄位、狀態醒目標示與 B 設備 PA CLI 產生。
+- 新增目前分類的單頁 Excel 匯出，會沿用畫面的篩選與忽略設定。
 
 ## 維護原則
 
