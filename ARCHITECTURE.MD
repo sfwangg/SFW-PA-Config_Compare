@@ -1,5 +1,8 @@
 # 系統架構與設計
 
+> 最後編輯時間：2026-07-21 22:37
+> 維護規則：每次修改本文件內容後，須同步更新上述最後編輯時間。
+
 ## 執行模式
 
 系統提供兩種前端入口：
@@ -8,6 +11,12 @@
 - React/Vinext 開發版：以 `app/page.tsx` 與 `app/globals.css` 維護，適合後續開發與測試。
 
 兩種模式均在瀏覽器端處理資料，不會上傳 XML 設定檔。
+
+## 呈現與正規化規則
+
+- Routing Table、Interface、Address、Service 與 Security Rules 均可依名稱／物件分組呈現；Security Rules 另提供欄位拖曳與 PA CLI 補充指令。
+- XML 的重複 `<member>` 節點先排序再比較，避免 Address-Group 等物件僅因成員順序不同而產生差異。
+- MGT 管理人員由 `mgt-config/users/entry@name` 擷取，作為獨立比較列，欄位名稱為 `mgt-config.users`。
 
 ## 資料流程
 

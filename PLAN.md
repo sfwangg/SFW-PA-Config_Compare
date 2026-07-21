@@ -1,5 +1,8 @@
 # 開發計畫
 
+> 最後編輯時間：2026-07-21 22:37
+> 維護規則：每次修改本文件內容後，須同步更新上述最後編輯時間。
+
 ## 目標
 
 建立可在使用者電腦上直接執行的 Palo Alto 防火牆 XML 設定比較工具。使用者選取兩份 XML 後，即可依 36 個比對項目檢視 A、B 主機設定差異，並輸出 Excel 報表。
@@ -16,6 +19,10 @@
 - 頁首顯示程式最後編輯時間，頁尾顯示 `Powered by Jeff.wang`。
 - Security Rules 改為 Rule Name 分組的橫向檢視，支援欄位拖曳排序、忽略常見 member 欄位、狀態醒目標示與 B 設備 PA CLI 產生。
 - 新增目前分類的單頁 Excel 匯出，會沿用畫面的篩選與忽略設定。
+- Security Rules 可隱藏 PA CLI 補充指令；啟用後，單頁 Excel 不會匯出補充指令欄位。
+- Routing Table、Interface、Address、Service 已改為依名稱／物件分組的橫向檢視。
+- Address-Group 的 member 順序已正規化，不會因排列不同產生差異。
+- MGT 存取設定已從 `mgt-config/users/entry@name` 列出並比較管理人員，參數欄位名稱為 `mgt-config.users`。
 
 ## 維護原則
 

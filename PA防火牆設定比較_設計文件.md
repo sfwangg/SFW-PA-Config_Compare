@@ -1,7 +1,12 @@
 # PA 防火牆設定檔比較工具 — 設計與實作文件
 
+> 最後編輯時間：2026-07-21 22:37
+> 維護規則：每次修改本文件內容後，須同步更新上述最後編輯時間。
+
 > 版本：v1.0　建立日期：2026-07-20
 > 目標：開發一個網頁工具，上傳兩份 Palo Alto (PA) 防火牆 XML 設定檔，依「比對項目.csv」定義的 36 個項目逐一比對，對每個參數差異提供明確說明，並可下載 Excel 格式的比對結果。
+
+> 2026-07-21 更新：Routing Table、Interface、Address、Service 使用名稱／物件分組視圖；Address-Group member 排序後比較；MGT 管理人員取自 `mgt-config/users/entry@name`，欄位名稱為 `mgt-config.users`。
 
 ---
 

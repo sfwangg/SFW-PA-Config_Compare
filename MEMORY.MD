@@ -1,5 +1,8 @@
 # 長期知識與需求
 
+> 最後編輯時間：2026-07-21 22:37
+> 維護規則：每次修改本文件內容後，須同步更新上述最後編輯時間。
+
 ## 使用情境
 
 - 使用者需比較兩份 Palo Alto 防火牆 XML 設定檔。
@@ -13,6 +16,9 @@
 - 支援差異篩選、狀態篩選、搜尋與 Excel 匯出。
 - `CONFIG/` 含測試用 XML，絕不可上傳至 GitHub。
 - README 與操作文件採繁體中文。
+- Routing Table、Interface、Address 與 Service 需以名稱／物件分組，合併顯示相關參數。
+- Address-Group 的 `<member>` 依名稱排序後比較，因此成員順序不構成差異。
+- MGT 管理人員從 `<mgt-config><users><entry name="...">` 擷取；畫面參數名稱使用 `mgt-config.users`。
 
 ## MGT Permitted IP 規則
 
