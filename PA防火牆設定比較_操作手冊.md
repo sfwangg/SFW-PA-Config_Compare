@@ -1,54 +1,19 @@
 # PA 防火牆設定比較工具：操作手冊
 
+> 最後編輯時間：2026-07-21 22:41
+> 維護規則：每次修改本文件內容後，須同步更新上述最後編輯時間。
+
 本工具用來比較兩份 Palo Alto 防火牆 XML 設定檔。XML 檔只會在使用者的瀏覽器中讀取與比對，不會上傳至外部伺服器。
 
-## 1. 使用前準備
+> 補充：Routing Table、Interface、Address、Service 會依名稱／物件彙整參數；MGT 存取設定會列出 `<mgt-config>` 下的管理人員帳號。Address-Group 的成員排列順序不影響比較結果。
 
-### 必要軟體
+## 1. 最簡單的使用方式：離線版
 
-請先安裝 [Node.js](https://nodejs.org/)，建議使用 LTS 版本（Node.js 22 或更新版本）。安裝後，重新開啟 PowerShell。
+直接在檔案總管雙擊 `index.html` 即可開啟工具。此方式不需要安裝 Node.js，也不需要啟動 PowerShell。
 
-### 開啟專案資料夾
+請保留同一資料夾內的 `lib/xlsx.full.min.js`，否則 Excel 匯出功能無法使用。
 
-在檔案總管開啟以下資料夾：
-
-```text
-E:\User\S.F.Wang\Dropbox\AI_project\工具開發\PA設定比較
-```
-
-在資料夾空白處按住 `Shift` 並按滑鼠右鍵，選擇「在這裡開啟 PowerShell 視窗」或「在終端機中開啟」。
-
-## 2. 第一次使用：安裝必要元件
-
-在 PowerShell 輸入：
-
-```powershell
-npm.cmd install
-```
-
-等待安裝完成即可。此步驟通常只需要在第一次使用，或專案的 `package.json` 有更新時執行。
-
-> 為避免 Windows PowerShell 的指令碼執行政策限制，請使用 `npm.cmd`，不要使用 `npm`。
-
-## 3. 啟動網頁
-
-在專案資料夾的 PowerShell 輸入：
-
-```powershell
-npm.cmd run dev -- --host 127.0.0.1
-```
-
-終端機會出現類似以下訊息：
-
-```text
-Local: http://localhost:3001/
-```
-
-請在瀏覽器開啟該網址。實際連接埠可能是 `3000`、`3001`、`3002` 或其他數字；**請以終端機顯示的 Local 網址為準**。
-
-啟動後請保持該 PowerShell 視窗開啟。關閉視窗會停止網站服務。
-
-## 4. 執行 XML 比對
+## 2. 執行 XML 比對
 
 1. 在頁面「來源 A」選擇第一份 PA XML 設定檔。
 2. 在「來源 B」選擇第二份 PA XML 設定檔。
@@ -60,11 +25,11 @@ Local: http://localhost:3001/
 測試檔案位於：
 
 ```text
-CONFIG\A-VER\1150706_DCSSG_189.xml
-CONFIG\B-VER\10.63.180.53.xml
+CONFIG\A-VER\1150706_G_189.xml
+CONFIG\B-VER\10.1.110.153.xml
 ```
 
-## 5. 如何閱讀結果
+## 3. 如何閱讀結果
 
 每筆結果會顯示「名稱／物件、參數、A 值、B 值與差異說明」。A 與 B 為對等比較，不代表新舊版本。
 
@@ -82,9 +47,17 @@ CONFIG\B-VER\10.63.180.53.xml
 - 狀態選單：只顯示指定狀態。
 - 搜尋欄：依物件名稱、欄位或說明搜尋。
 
-## 6. 匯出 Excel
+### Security Rules 專用檢視
+
+選擇第 23 項「Security Rules」時，每個 Rule Name 會獨立成一個區塊，參數以橫向欄位呈現。可拖曳欄位標題調整顯示順序，也可啟用「忽略 to／from／profile 成員」排除 `to.member`、`from.member` 與 `profile-setting.group.member`。
+
+每個 Rule 最下方的「補充指令」會依 A/B 差異產生用於 B 設備的 PA CLI。可使用「隱藏補充指令」暫時收合。請先檢閱命令與實際設定，再於 B 設備的 SSH 連線中執行；敏感欄位只會提示人工設定。
+
+## 4. 匯出 Excel
 
 比對完成後，點選右上方「下載 Excel 報表」。
+
+如只需要目前分類，可使用工具列的「下載本頁 Excel」。檔案會套用目前的搜尋、狀態、僅看差異與 Security Rules 忽略欄位設定；Security Rules 隱藏補充指令時，不會匯出該欄位。
 
 下載的 Excel 包含：
 
@@ -98,28 +71,7 @@ CONFIG\B-VER\10.63.180.53.xml
 PA比對_{A主機名稱}_vs_{B主機名稱}_{日期}.xlsx
 ```
 
-## 7. 常見問題
-
-### 網頁顯示「無法連線至這個網站」
-
-請確認 PowerShell 視窗仍在執行 `npm.cmd run dev -- --host 127.0.0.1`。若服務已停止，重新執行該指令。
-
-另外，不要固定使用舊網址。例如終端機顯示 `http://localhost:3002/` 時，請開啟 `3002`，不要開啟先前使用過的 `3001`。
-
-### 顯示「Port 3000 is in use」
-
-這不是錯誤。代表 `3000` 已被其他程式使用，工具會自動改用 `3001`、`3002` 等可用連接埠。請開啟終端機顯示的 Local 網址。
-
-### PowerShell 顯示 npm 無法執行或指令碼被停用
-
-請使用以下格式：
-
-```powershell
-npm.cmd install
-npm.cmd run dev -- --host 127.0.0.1
-```
-
-不要省略 `.cmd`。
+## 5. 常見問題
 
 ### 上傳後顯示不是有效的 PA XML
 
@@ -128,14 +80,3 @@ npm.cmd run dev -- --host 127.0.0.1
 ### 為何某些敏感值沒有顯示？
 
 為避免敏感資料外洩，密碼雜湊、金鑰、SNMP community 與密碼類欄位會以遮罩呈現；工具仍會比較是否有差異。
-
-## 8. 停止服務
-
-回到執行網站的 PowerShell 視窗，按下：
-
-```text
-Ctrl + C
-```
-
-看到結束提示後即可關閉 PowerShell 視窗。
-

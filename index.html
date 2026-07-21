@@ -1,0 +1,1180 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PA 防火牆設定比較工具（離線版）</title>
+    <style>
+      :root {
+        --ink: #132238;
+        --muted: #66758a;
+        --line: #dce3ea;
+        --blue: #1976c2;
+        --paper: #f5f7fa;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font:
+          14px Arial,
+          "Microsoft JhengHei",
+          sans-serif;
+      }
+      main {
+        width: 100%;
+        max-width: none;
+        margin: auto;
+        padding: 30px clamp(20px, 2.5vw, 56px);
+      }
+      header,
+      .card,
+      .work {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px;
+        margin-bottom: 18px;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      .eyebrow {
+        margin-bottom: 7px;
+        color: var(--blue);
+        font-size: 11px;
+        font-weight: bold;
+        letter-spacing: 0.12em;
+      }
+      .sub {
+        margin-top: 8px;
+        color: var(--muted);
+      }
+      button {
+        border: 0;
+        border-radius: 6px;
+        padding: 10px 16px;
+        background: var(--blue);
+        color: #fff;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .card {
+        padding: 20px;
+      }
+      .files {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .file {
+        display: block;
+        border: 1px dashed #85b5dc;
+        border-radius: 7px;
+        padding: 13px;
+        color: var(--blue);
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .file input {
+        display: none;
+      }
+      .file span {
+        display: block;
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: normal;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .controls {
+        display: flex;
+        gap: 12px;
+        align-items: end;
+        flex-wrap: wrap;
+        margin-top: 16px;
+      }
+      .controls label {
+        display: grid;
+        gap: 5px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .controls select,
+      .toolbar input,
+      .toolbar select {
+        padding: 8px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #fff;
+      }
+      .error {
+        margin-top: 12px;
+        color: #a22;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 12px;
+        margin: 18px 0;
+      }
+      .stats div {
+        padding: 14px;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+      .stats b {
+        display: block;
+        font-size: 24px;
+      }
+      .stats span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .work {
+        display: grid;
+        grid-template-columns: 245px minmax(0, 1fr);
+        min-height: 600px;
+      }
+      aside {
+        padding: 10px 7px;
+        border-right: 1px solid var(--line);
+        overflow: auto;
+      }
+      .nav-title {
+        padding: 7px;
+        font-weight: bold;
+      }
+      aside button {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        padding: 9px;
+        background: transparent;
+        color: #435268;
+        text-align: left;
+        font-size: 13px;
+      }
+      aside button:hover,
+      aside button.active {
+        background: #e7f0f8;
+        color: #0d548f;
+      }
+      aside em {
+        font-style: normal;
+        background: #edf0f3;
+        border-radius: 10px;
+        padding: 1px 7px;
+        font-size: 11px;
+      }
+      article {
+        min-width: 0;
+      }
+      .head {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 21px 24px 8px;
+      }
+      .toolbar {
+        display: flex;
+        gap: 7px;
+        align-items: center;
+        flex-wrap: wrap;
+        font-size: 12px;
+      }
+      .toolbar input {
+        width: 190px;
+      }
+      .toolbar input[type="text"] {
+        width: 190px;
+      }
+      .toolbar input[type="checkbox"] {
+        width: auto;
+        margin: 0 3px 0 0;
+        padding: 0;
+        vertical-align: middle;
+      }
+      .toolbar label {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        white-space: nowrap;
+      }
+      aside button.summary-nav span {
+        color: #000;
+        font-style: italic;
+        font-weight: 700;
+      }
+      .summary {
+        margin: 0 24px 10px;
+        padding: 10px 12px;
+        border-left: 3px solid var(--blue);
+        background: #f4f8fc;
+        color: #40566e;
+        font-style: italic;
+        font-weight: 700;
+        line-height: 1.55;
+      }
+      .note {
+        padding: 0 24px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .ip-lists {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin: 12px 24px;
+      }
+      .ip-lists > div {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #fafcfe;
+      }
+      .ip-lists h3 {
+        padding: 9px 11px;
+        border-bottom: 1px solid var(--line);
+        font-size: 13px;
+      }
+      .ip-lists ul {
+        max-height: 200px;
+        overflow: auto;
+        margin: 0;
+        padding: 7px 12px 9px 28px;
+        font:
+          12px/1.65 Consolas,
+          "Microsoft JhengHei",
+          monospace;
+      }
+      .table-wrap {
+        overflow: auto;
+        border-top: 1px solid var(--line);
+      }
+      .security-rules { display: grid; gap: 16px; padding: 18px 24px 24px; }
+      .security-hint { margin: 0; color: var(--muted); font-size: 12px; }
+      .security-rule { overflow: hidden; border: 1px solid var(--line); border-radius: 8px; }
+      .security-rule > header { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; margin: 0; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: #f5f8fb; }
+      .security-rule h3 { font-size: 14px; }
+      .security-rule header span { color: var(--muted); font-size: 12px; }
+      .security-scroll { overflow: auto; }
+      .security-table { min-width: max-content; }
+      .security-table th { min-width: 170px; vertical-align: top; }
+      .security-table th:first-child { min-width: 110px; }
+      .security-table .field-head { cursor: grab; user-select: none; }
+      .security-table .field-head::before { content: "⠿ "; color: #8b9aac; }
+      .security-table .field-head.dragging { opacity: .45; }
+      .security-table td { min-width: 170px; max-width: 280px; }
+      .security-value { display: grid; gap: 5px; }
+      .security-value b { color: #536479; font-size: 11px; }
+      .security-value p { margin: 0; white-space: pre-wrap; }
+      .security-value .desc { color: var(--muted); font-size: 11px; }
+      .security-instruction th, .security-instruction td { background: #f7fafc; }
+      .security-instruction td { color: #40566e; }
+      .security-cli { margin: 0; color: #24384e; font: 12px/1.55 Consolas, "Microsoft JhengHei", monospace; white-space: pre-wrap; }
+      .security-status { display: inline-block; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px; }
+      .security-status.same { background: #edf0f2; color: #7c8794; }
+      .security-status.changed { background: #fff1bd; color: #835b00; }
+      .security-status.onlyA, .security-status.onlyB { background: #ffe0e0; color: #b42318; }
+      .security-status.moved { background: #eee5f7; color: #71508a; }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 880px;
+        font-size: 12px;
+      }
+      th {
+        text-align: left;
+        padding: 10px;
+        background: #f1f5f8;
+        color: #536479;
+      }
+      td {
+        padding: 9px 10px;
+        border-top: 1px solid #edf0f2;
+        vertical-align: top;
+        max-width: 300px;
+        word-break: break-word;
+      }
+      tr.same {
+        color: #8a96a5;
+      }
+      tr.changed td {
+        background: #fff8ed;
+      }
+      tr.onlyA td {
+        background: #fff1f1;
+      }
+      tr.onlyB td {
+        background: #effaf3;
+      }
+      tr.moved td {
+        background: #f7f1fb;
+      }
+      .badge {
+        font-weight: bold;
+        font-size: 11px;
+      }
+      .empty {
+        padding: 45px;
+        text-align: center;
+        color: var(--muted);
+      }
+      @media (max-width: 850px) {
+        main {
+          padding: 14px;
+        }
+        header,
+        .head {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .files,
+        .stats,
+        .ip-lists {
+          grid-template-columns: 1fr;
+        }
+        .work {
+          grid-template-columns: 1fr;
+        }
+        aside {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+          max-height: 220px;
+        }
+      }
+      .last-edited {
+        margin: 8px 0 0;
+        color: #76869a;
+        font-size: 12px;
+      }
+      footer {
+        padding: 28px 0 4px;
+        color: #718096;
+        font-size: 12px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <p class="eyebrow">OFFLINE · NO NODE.JS REQUIRED</p>
+          <h1>PA 防火牆設定比較</h1>
+          <p class="sub">直接開啟此檔即可使用；XML 只在本機瀏覽器中解析。</p>
+          <p class="last-edited">最後編輯時間：2026-07-21 22:37</p>
+        </div>
+        <button id="export" disabled>下載 Excel 報表</button>
+      </header>
+      <section class="card">
+        <div class="files">
+          <label class="file"
+            >來源 A<input
+              id="fileA"
+              type="file"
+              accept=".xml,text/xml,application/xml"
+            /><span id="fileAName">選擇 PA XML 設定檔</span></label
+          ><label class="file"
+            >來源 B<input
+              id="fileB"
+              type="file"
+              accept=".xml,text/xml,application/xml"
+            /><span id="fileBName">選擇 PA XML 設定檔</span></label
+          >
+        </div>
+        <div class="controls">
+          <label
+            >A 範圍<select id="scopeA">
+              <option value="">根設定／自動</option>
+            </select></label
+          ><label
+            >B 範圍<select id="scopeB">
+              <option value="">根設定／自動</option>
+            </select></label
+          ><button id="compare">開始比對</button>
+        </div>
+        <p class="error" id="error"></p>
+      </section>
+      <section class="stats" id="stats" hidden></section>
+      <section class="work" id="work" hidden>
+        <aside>
+          <div class="nav-title">比對項目 <span>36</span></div>
+          <div id="nav"></div>
+        </aside>
+        <article>
+          <div class="head">
+            <div>
+              <p class="eyebrow" id="itemNo"></p>
+              <h2 id="itemTitle"></h2>
+            </div>
+            <div class="toolbar">
+              <label><input id="onlyDiff" type="checkbox" /> 僅看差異</label
+              ><label id="ignoreSecurityFieldsLabel" hidden title="忽略 to.member、from.member、profile-setting.group.member"><input id="ignoreSecurityFields" type="checkbox" /> 忽略 to／from／profile 成員</label
+              ><label id="hideSecurityInstructionsLabel" hidden title="隱藏 Security Rules 的 PA CLI 補充指令"><input id="hideSecurityInstructions" type="checkbox" /> 隱藏補充指令</label
+              ><button id="exportCurrent" type="button">下載本頁 Excel</button
+              ><select id="status">
+                <option value="all">全部狀態</option>
+                <option value="onlyA">僅存在 A</option>
+                <option value="onlyB">僅存在 B</option>
+                <option value="changed">變更</option>
+                <option value="moved">順序提示</option>
+                <option value="same">一致</option></select
+              ><input id="search" placeholder="搜尋名稱、欄位或說明" />
+            </div>
+          </div>
+          <div class="summary" id="summary"></div>
+          <p class="note" id="note"></p>
+          <div id="ipLists"></div>
+          <div id="securityRules" hidden></div>
+          <div class="table-wrap" id="standardTable">
+            <table>
+              <thead>
+                <tr>
+                  <th>名稱／物件</th>
+                  <th>參數</th>
+                  <th>狀態</th>
+                  <th id="aHead">A 值</th>
+                  <th id="bHead">B 值</th>
+                  <th>差異說明</th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+      <footer>Powered by Jeff.wang</footer>
+    </main>
+    <script src="lib/xlsx.full.min.js"></script>
+    <script>
+      const ITEMS = [
+        [1, "設備&HA資訊", "scalar", ""],
+        [2, "MGT存取設定", "scalar", ""],
+        [3, "系統設定", "scalar", ""],
+        [4, "Network Profiles", "entries", "network/profiles"],
+        [5, "Interface對應表", "entries", "network/interface"],
+        [
+          6,
+          "Routing Table",
+          "entries",
+          "network/virtual-router/entry/routing-table/ip/static-route",
+        ],
+        [
+          7,
+          "IKE Crypto Profiles",
+          "entries",
+          "network/ike/crypto-profiles/ike-crypto-profiles",
+        ],
+        [
+          8,
+          "IPSec Crypto Profiles",
+          "entries",
+          "network/ike/crypto-profiles/ipsec-crypto-profiles",
+        ],
+        [9, "IKE Gateway", "entries", "network/ike/gateway"],
+        [10, "IPSec Tunnel", "entries", "network/tunnel/ipsec"],
+        [11, "Object 差異總表", "summary", "object"],
+        [12, "Address", "entries", "address"],
+        [13, "Address-Group", "entries", "address-group"],
+        [14, "Service", "entries", "service"],
+        [15, "Service-Group", "entries", "service-group"],
+        [16, "Schedule", "entries", "schedule"],
+        [17, "Tag", "entries", "tag"],
+        [18, "Application", "entries", "application"],
+        [19, "Application-Group", "entries", "application-group"],
+        [20, "Custom-URL", "entries", "profiles/custom-url-category"],
+        [21, "External-List", "entries", "external-list"],
+        [22, "Policy差異總表", "summary", "policy"],
+        [23, "Security Rules", "entries", "rulebase/security/rules"],
+        [24, "Security順序", "sequence", "rulebase/security/rules"],
+        [25, "NAT Rules", "entries", "rulebase/nat/rules"],
+        [26, "NAT順序", "sequence", "rulebase/nat/rules"],
+        [27, "QoS Rules", "entries", "rulebase/qos/rules"],
+        [28, "QoS順序", "sequence", "rulebase/qos/rules"],
+        [
+          29,
+          "App-Override Rules",
+          "entries",
+          "rulebase/application-override/rules",
+        ],
+        [
+          30,
+          "App-Override順序",
+          "sequence",
+          "rulebase/application-override/rules",
+        ],
+        [31, "PBF Rules", "entries", "rulebase/pbf/rules"],
+        [32, "PBF順序", "sequence", "rulebase/pbf/rules"],
+        [33, "Decryption Rules", "entries", "rulebase/decryption/rules"],
+        [34, "Decryption順序", "sequence", "rulebase/decryption/rules"],
+        [35, "DoS Rules", "entries", "rulebase/dos/rules"],
+        [36, "DoS順序", "sequence", "rulebase/dos/rules"],
+      ];
+      const statusText = {
+          same: "一致",
+          changed: "變更",
+          onlyA: "僅存在 A",
+          onlyB: "僅存在 B",
+          moved: "順序提示",
+        },
+        objectIds = new Set([12, 13, 14, 15, 16, 17, 18, 19, 20, 21]),
+        policyIds = new Set([
+          23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36,
+        ]);
+      let sourceA = null,
+        sourceB = null,
+        allRows = [],
+        active = 1;
+      let securityFieldOrder = [], draggedSecurityField = null;
+      let displayedRows = [];
+      const ignoredSecurityFields = new Set(["to.member", "from.member", "profile-setting.group.member"]);
+      const $ = (id) => document.getElementById(id),
+        clean = (v) => (v || "").replace(/\s+/g, " ").trim(),
+        esc = (v) =>
+          String(v ?? "").replace(
+            /[&<>"']/g,
+            (c) =>
+              ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;",
+              })[c],
+          );
+      function children(n, tag) {
+        return [...n.children].filter((x) => x.tagName === tag);
+      }
+      function path(root, p) {
+        return p
+          ? p
+              .split("/")
+              .reduce((ns, t) => ns.flatMap((n) => children(n, t)), [root])
+          : [root];
+      }
+      function mask(field, v) {
+        return /phash|key|community|password/i.test(field) && v
+          ? "••••••（已遮罩）"
+          : v;
+      }
+      function flatten(n, p = "", out = {}) {
+        const cs = [...n.children];
+        if (!cs.length) {
+          if (p) out[p] = mask(p, clean(n.textContent));
+          return out;
+        }
+        const groups = {};
+        cs.forEach((c) => (groups[c.tagName] ??= []).push(c));
+        Object.entries(groups).forEach(([tag, nodes]) => {
+          let k = p ? `${p}.${tag}` : tag;
+          if (tag === "member")
+            out[k] = nodes
+              .map((x) => clean(x.textContent))
+              .sort()
+              .join("、");
+          else
+            nodes.forEach((x, i) =>
+              flatten(x, nodes.length > 1 ? `${k}[${i + 1}]` : k, out),
+            );
+        });
+        return out;
+      }
+      function entries(root, p) {
+        const cs = path(root, p),
+          es = cs.flatMap((c) => [
+            ...children(c, "entry"),
+            ...[...c.children].flatMap((g) => children(g, "entry")),
+          ]);
+        return new Map(
+          es.map((e) => [e.getAttribute("name") || "(未命名)", flatten(e)]),
+        );
+      }
+      function merged(src, p) {
+        const root = src.xml.documentElement,
+          scope = src.scopes.find((s) => s.id === src.scope)?.node;
+        if (p.startsWith("network/"))
+          return entries(root, "devices/entry/" + p);
+        if (p.startsWith("rulebase/"))
+          return scope ? entries(scope, p) : new Map();
+        return new Map([
+          ...entries(root, "shared/" + p),
+          ...(scope ? entries(scope, p) : new Map()),
+        ]);
+      }
+      function add(root, out, label, p) {
+        const n = path(root, p)[0];
+        if (n) Object.assign(out, flatten(n, label));
+      }
+      function settings(src, item) {
+        const root = src.xml.documentElement,
+          v = {};
+        if (item === 1) {
+          add(root, v, "Device", "devices/entry/deviceconfig/system/hostname");
+          add(root, v, "Mgmt", "devices/entry/deviceconfig/system/ip-address");
+          add(root, v, "Mgmt", "devices/entry/deviceconfig/system/netmask");
+          add(
+            root,
+            v,
+            "Mgmt",
+            "devices/entry/deviceconfig/system/default-gateway",
+          );
+          add(root, v, "HA", "devices/entry/deviceconfig/high-availability");
+        } else if (item === 2) {
+          add(root, v, "MGT", "mgt-config");
+          add(
+            root,
+            v,
+            "MGT Service",
+            "devices/entry/deviceconfig/system/service",
+          );
+          add(root, v, "MGT SSH", "devices/entry/deviceconfig/system/ssh");
+        } else {
+          add(root, v, "System", "devices/entry/deviceconfig/system/timezone");
+          add(
+            root,
+            v,
+            "System",
+            "devices/entry/deviceconfig/system/update-server",
+          );
+          add(
+            root,
+            v,
+            "System",
+            "devices/entry/deviceconfig/system/ssl-tls-service-profile",
+          );
+          add(root, v, "DNS", "devices/entry/deviceconfig/system/dns-setting");
+          add(root, v, "NTP", "devices/entry/deviceconfig/system/ntp-servers");
+          add(
+            root,
+            v,
+            "SNMP",
+            "devices/entry/deviceconfig/system/snmp-setting",
+          );
+          add(root, v, "Shared Logging", "shared/log-settings");
+          add(root, v, "Server Profile", "shared/server-profile");
+          v["vSys.vSys Count"] = String(
+            src.scopes.filter((s) => s.id.startsWith("vsys:")).length,
+          );
+        }
+        const result = new Map([["系統設定", v]]);
+        if (item === 2) {
+          const users = path(root, "mgt-config/users")[0];
+          if (users) {
+            children(users, "entry").forEach((entry) => {
+              const name = entry.getAttribute("name") || "(未命名)";
+              result.set("管理人員：" + name, { "mgt-config.users": name });
+            });
+          }
+          const permitted = path(
+            root,
+            "devices/entry/deviceconfig/system/permitted-ip",
+          )[0];
+          children(permitted || root, "entry").forEach((e) => {
+            const ip = e.getAttribute("name") || "(未命名)";
+            result.set("Permitted IP：" + ip, {
+              "Entry Name（允許 IP／網段）": ip,
+            });
+          });
+        }
+        return result;
+      }
+      function desc(status, cat, key, field, a, b) {
+        if (status === "same") return "一致";
+        if (status === "onlyA") return `僅存在於 A：${cat}「${key}」`;
+        if (status === "onlyB") return `僅存在於 B：${cat}「${key}」`;
+        if (status === "moved")
+          return `規則「${key}」順序：A 第 ${a} 條／B 第 ${b} 條（雙機核對提示）`;
+        return `${key} 的 ${field}：${a || "（未設定）"} → ${b || "（未設定）"}`;
+      }
+      function compareMap(item, cat, a, b) {
+        let r = [];
+        new Set([...a.keys(), ...b.keys()]).forEach((key) => {
+          const av = a.get(key),
+            bv = b.get(key);
+          if (!av || !bv) {
+            const status = av ? "onlyA" : "onlyB",
+              record = av || bv || {},
+              fs = Object.entries(record);
+            (fs.length ? fs : [["（未設定參數）", ""]]).forEach(
+              ([field, value]) =>
+                r.push({
+                  item,
+                  category: cat,
+                  key,
+                  field,
+                  status,
+                  valueA: av ? value || "（未設定）" : "—",
+                  valueB: bv ? value || "（未設定）" : "—",
+                  description: desc(status, cat, key, field, "", ""),
+                }),
+            );
+            return;
+          }
+          new Set([...Object.keys(av), ...Object.keys(bv)]).forEach((field) => {
+            const valueA = av[field] || "",
+              valueB = bv[field] || "",
+              status = valueA === valueB ? "same" : "changed";
+            r.push({
+              item,
+              category: cat,
+              key,
+              field,
+              status,
+              valueA,
+              valueB,
+              description: desc(status, cat, key, field, valueA, valueB),
+            });
+          });
+        });
+        return r;
+      }
+      function compareSeq(item, cat, a, b) {
+        const ak = [...a.keys()],
+          bk = [...b.keys()];
+        return [...new Set([...ak, ...bk])].map((key) => {
+          const ai = ak.indexOf(key),
+            bi = bk.indexOf(key),
+            status =
+              ai < 0
+                ? "onlyB"
+                : bi < 0
+                  ? "onlyA"
+                  : ai === bi
+                    ? "same"
+                    : "moved";
+          return {
+            item,
+            category: cat,
+            key,
+            field: "順序",
+            status,
+            valueA: ai < 0 ? "—" : String(ai + 1),
+            valueB: bi < 0 ? "—" : String(bi + 1),
+            description: desc(
+              status,
+              cat,
+              key,
+              "順序",
+              String(ai + 1),
+              String(bi + 1),
+            ),
+          };
+        });
+      }
+      function summary(rs) {
+        const changed = rs.filter((x) => x.status === "changed"),
+          one = rs.filter((x) => x.status === "onlyA" || x.status === "onlyB");
+        if (!changed.length && !one.length) return "此項目所有參數一致。";
+        const g = {};
+        changed.forEach((x) => (g[x.field] ??= []).push(x));
+        const top = Object.entries(g).sort(
+          (a, b) => b[1].length - a[1].length,
+        )[0];
+        if (!top) return `主要為 ${one.length} 筆僅存在於單一主機的設定。`;
+        const pairs = {};
+        top[1].forEach((x) =>
+          (pairs[`${x.valueA} → ${x.valueB}`] ??= []).push(x),
+        );
+        const pair = Object.entries(pairs).sort(
+          (a, b) => b[1].length - a[1].length,
+        )[0];
+        return `主要差異為「${top[0]}」共 ${top[1].length} 筆；最常見變更：${pair[0]}（${pair[1].length} 筆）${one.length ? `；另有 ${one.length} 筆只存在於單一主機` : ""}。`;
+      }
+      function parse(file) {
+        return file.text().then((text) => {
+          const xml = new DOMParser().parseFromString(text, "application/xml");
+          if (
+            xml.querySelector("parsererror") ||
+            xml.documentElement.tagName !== "config"
+          )
+            throw Error("不是有效的 PA XML 設定檔");
+          const sys = xml.querySelector(
+              "devices > entry > deviceconfig > system",
+            ),
+            scopes = [
+              ...xml.querySelectorAll("devices > entry > vsys > entry"),
+            ].map((n, i) => ({
+              id: "vsys:" + (n.getAttribute("name") || i),
+              label: "vsys：" + (n.getAttribute("name") || `vsys${i + 1}`),
+              node: n,
+            }));
+          return {
+            file,
+            xml,
+            hostname:
+              clean(sys?.querySelector(":scope > hostname")?.textContent) ||
+              file.name,
+            version: xml.documentElement.getAttribute("version") || "未標示",
+            scopes,
+            scope: scopes[0]?.id || "",
+          };
+        });
+      }
+      function fillScopes(id, src) {
+        const select = $(id);
+        select.innerHTML =
+          '<option value="">根設定／自動</option>' +
+          src.scopes
+            .map((s) => `<option value="${esc(s.id)}">${esc(s.label)}</option>`)
+            .join("");
+        select.value = src.scope;
+      }
+      async function load(side) {
+        const f = $(side === "A" ? "fileA" : "fileB").files[0];
+        if (!f) return;
+        try {
+          const src = await parse(f);
+          if (side === "A") {
+            sourceA = src;
+            fillScopes("scopeA", src);
+            $("fileAName").textContent =
+              `${f.name} · ${src.hostname} · v${src.version}`;
+          } else {
+            sourceB = src;
+            fillScopes("scopeB", src);
+            $("fileBName").textContent =
+              `${f.name} · ${src.hostname} · v${src.version}`;
+          }
+          $("error").textContent = "";
+        } catch (e) {
+          $("error").textContent = e.message;
+        }
+      }
+      function run() {
+        if (!sourceA || !sourceB) {
+          $("error").textContent = "請先選擇兩份 PA XML 設定檔。";
+          return;
+        }
+        sourceA.scope = $("scopeA").value;
+        sourceB.scope = $("scopeB").value;
+        let data = [];
+        ITEMS.forEach(([id, name, kind, p]) => {
+          if (kind === "summary") return;
+          const a =
+              kind === "scalar" ? settings(sourceA, id) : merged(sourceA, p),
+            b = kind === "scalar" ? settings(sourceB, id) : merged(sourceB, p);
+          data.push(
+            ...(kind === "sequence"
+              ? compareSeq(id, name, a, b)
+              : compareMap(id, name, a, b)),
+          );
+        });
+        [11, 22].forEach((id) => {
+          const ids = id === 11 ? objectIds : policyIds,
+            name = ITEMS.find((x) => x[0] === id)[1],
+            groups = {};
+          data
+            .filter((x) => ids.has(x.item))
+            .forEach((x) => (groups[x.category] ??= []).push(x));
+          Object.entries(groups).forEach(([key, rs]) => {
+            const d = rs.filter((x) => x.status !== "same").length;
+            data.push({
+              item: id,
+              category: name,
+              key,
+              field: "差異統計",
+              status: d ? "changed" : "same",
+              valueA: String(rs.length),
+              valueB: String(d),
+              description: `${key}：共 ${rs.length} 筆參數，${d} 筆差異`,
+            });
+          });
+        });
+        allRows = data;
+        active = 1;
+        $("work").hidden = false;
+        $("stats").hidden = false;
+        $("export").disabled = false;
+        render();
+      }
+      function diffCount(id) {
+        return allRows.filter((x) => x.item === id && x.status !== "same")
+          .length;
+      }
+      function securityFields(rows) {
+        const fields = [...new Set(rows.map((x) => x.field))];
+        securityFieldOrder = securityFieldOrder.filter((x) => fields.includes(x));
+        fields.forEach((x) => {
+          if (!securityFieldOrder.includes(x)) securityFieldOrder.push(x);
+        });
+        return securityFieldOrder;
+      }
+      function cliQuote(value) {
+        return `"${String(value).replace(/(["\\])/g, "\\$1")}"`;
+      }
+      function cliPath(field) {
+        return field.replace(/\[\d+\]/g, "").replace(/\.member$/, "").replace(/\./g, " ");
+      }
+      function cliValue(value) {
+        const values = String(value || "").split("、").filter(Boolean);
+        return values.length > 1 ? `[ ${values.map(cliQuote).join(" ")} ]` : cliQuote(values[0] || "");
+      }
+      function securityCli(name, group) {
+        const base = `rulebase security rules ${cliQuote(name)}`;
+        if (group.length && group.every((row) => row.status === "onlyB"))
+          return ["configure", `delete ${base}`, "# 確認後執行 commit"].join("\n");
+        const commands = ["configure"];
+        group.filter((row) => row.status === "changed" || row.status === "onlyA").forEach((row) => {
+          if (/phash|key|community|password/i.test(row.field)) {
+            commands.push(`# ${row.field} 為遮罩敏感值，請手動設定`);
+            return;
+          }
+          const path = cliPath(row.field), value = row.valueA;
+          if (row.status === "changed" && row.valueB !== "—") commands.push(`delete ${base} ${path}`);
+          if (value && value !== "—" && value !== "（未設定）") commands.push(`set ${base} ${path} ${cliValue(value)}`);
+        });
+        commands.push("# 確認後執行 commit");
+        return commands.join("\n");
+      }
+      function renderSecurityRules(rows) {
+        const fields = securityFields(rows), groups = new Map();
+        rows.forEach((row) => {
+          if (!groups.has(row.key)) groups.set(row.key, []);
+          groups.get(row.key).push(row);
+        });
+        $("securityRules").innerHTML = !groups.size
+          ? `<div class="empty">沒有符合條件的結果</div>`
+          : `<div class="security-rules"><p class="security-hint">每個 Rule Name 為一組；可拖曳欄位標題（⠿）調整參數的顯示順序。</p>${[...groups.entries()].map(([name, group]) => {
+              const byField = new Map(group.map((row) => [row.field, row]));
+              const cols = fields.filter((field) => byField.has(field));
+              const diffs = group.filter((row) => row.status !== "same").length;
+              const values = (side) => cols.map((field) => {
+                const row = byField.get(field), value = side === "A" ? row.valueA : row.valueB;
+                return `<td class="${row.status}"><div class="security-value"><p>${esc(value || "—")}</p></div></td>`;
+              }).join("");
+              const descriptions = cols.map((field) => {
+                const row = byField.get(field);
+                return `<td class="${row.status}"><div class="security-value"><b class="security-status ${row.status}">${esc(statusText[row.status])}</b>${row.status === "same" ? "" : `<p class="desc">${esc(row.description)}</p>`}</div></td>`;
+              }).join("");
+              const instruction = $("hideSecurityInstructions").checked ? "" : `<tr class="security-instruction"><th>補充指令</th><td colspan="${cols.length}"><pre class="security-cli">${esc(securityCli(name, group))}</pre></td></tr>`;
+              return `<section class="security-rule"><header><h3>${esc(name)}</h3><span>差異 ${diffs} 項／顯示 ${group.length} 項</span></header><div class="security-scroll"><table class="security-table"><thead><tr><th>來源／項目</th>${cols.map((field) => `<th class="field-head" draggable="true" data-field="${esc(field)}">${esc(field)}</th>`).join("")}</tr></thead><tbody><tr><th>${esc(sourceA.hostname)}</th>${values("A")}</tr><tr><th>${esc(sourceB.hostname)}</th>${values("B")}</tr><tr><th>狀態／說明</th>${descriptions}</tr>${instruction}</tbody></table></div></section>`;
+            }).join("")}</div>`;
+        $("securityRules").querySelectorAll(".field-head").forEach((head) => {
+          head.ondragstart = () => { draggedSecurityField = head.dataset.field; head.classList.add("dragging"); };
+          head.ondragend = () => { draggedSecurityField = null; head.classList.remove("dragging"); };
+          head.ondragover = (event) => event.preventDefault();
+          head.ondrop = (event) => {
+            event.preventDefault();
+            const target = head.dataset.field;
+            if (!draggedSecurityField || draggedSecurityField === target) return;
+            const from = securityFieldOrder.indexOf(draggedSecurityField), to = securityFieldOrder.indexOf(target);
+            securityFieldOrder.splice(from, 1);
+            securityFieldOrder.splice(to, 0, draggedSecurityField);
+            render();
+          };
+        });
+      }
+      function renderGroupedEntries(rows) {
+        const groups = new Map();
+        rows.forEach((row) => {
+          if (!groups.has(row.key)) groups.set(row.key, []);
+          groups.get(row.key).push(row);
+        });
+        $("securityRules").innerHTML = !groups.size
+          ? `<div class="empty">沒有符合條件的結果</div>`
+          : `<div class="security-rules"><p class="security-hint">每個名稱／物件為一組，相關參數會合併顯示。</p>${[...groups.entries()].map(([name, group]) => {
+              const cols = group.map((row) => row.field);
+              const diffs = group.filter((row) => row.status !== "same").length;
+              const values = (side) => group.map((row) => {
+                const value = side === "A" ? row.valueA : row.valueB;
+                return `<td class="${row.status}"><div class="security-value"><p>${esc(value || "—")}</p></div></td>`;
+              }).join("");
+              const descriptions = group.map((row) =>
+                `<td class="${row.status}"><div class="security-value"><b class="security-status ${row.status}">${esc(statusText[row.status])}</b>${row.status === "same" ? "" : `<p class="desc">${esc(row.description)}</p>`}</div></td>`,
+              ).join("");
+              return `<section class="security-rule"><header><h3>${esc(name)}</h3><span>差異 ${diffs} 項／顯示 ${group.length} 項</span></header><div class="security-scroll"><table class="security-table"><thead><tr><th>來源／項目</th>${cols.map((field) => `<th>${esc(field)}</th>`).join("")}</tr></thead><tbody><tr><th>${esc(sourceA.hostname)}</th>${values("A")}</tr><tr><th>${esc(sourceB.hostname)}</th>${values("B")}</tr><tr><th>狀態／說明</th>${descriptions}</tr></tbody></table></div></section>`;
+            }).join("")}</div>`;
+      }
+      function render() {
+        const item = ITEMS.find((x) => x[0] === active),
+          rawRows = allRows.filter((x) => x.item === active),
+          rs = active === 23 && $("ignoreSecurityFields").checked ? rawRows.filter((x) => !ignoredSecurityFields.has(x.field)) : rawRows,
+          only = $("onlyDiff").checked,
+          status = $("status").value,
+          q = $("search").value.toLowerCase(),
+          shown = rs.filter(
+            (x) =>
+              (!only || x.status !== "same") &&
+              (status === "all" || x.status === status) &&
+              `${x.key} ${x.field} ${x.description}`.toLowerCase().includes(q),
+          );
+        displayedRows = shown;
+        $("nav").innerHTML = ITEMS.map(
+          ([id, name]) =>
+            `<button class="${id === active ? "active " : ""}${id === 11 || id === 22 ? "summary-nav" : ""}" data-id="${id}"><span>${id}. ${esc(name)}</span><em>差異 ${diffCount(id)}</em></button>`,
+        ).join("");
+        $("nav")
+          .querySelectorAll("button")
+          .forEach(
+            (b) =>
+              (b.onclick = () => {
+                active = +b.dataset.id;
+                render();
+              }),
+          );
+        $("itemNo").textContent = "項目 " + item[0];
+        $("itemTitle").textContent = item[1];
+        $("summary").textContent = summary(rs);
+        $("ignoreSecurityFieldsLabel").hidden = active !== 23;
+        $("hideSecurityInstructionsLabel").hidden = active !== 23;
+        $("note").textContent =
+          `顯示 ${shown.length} 筆；${sourceA.hostname} 與 ${sourceB.hostname} 為對等比較，方向不代表新舊。`;
+        $("aHead").textContent = sourceA.hostname + " 值";
+        $("bHead").textContent = sourceB.hostname + " 值";
+        const ips = rs.filter((x) => x.field === "Entry Name（允許 IP／網段）"),
+          names = (s) =>
+            ips
+              .filter((x) => (s === "A" ? x.valueA : x.valueB) !== "—")
+              .map((x) => x.key.replace("Permitted IP：", ""));
+        $("ipLists").innerHTML =
+          active === 2 && ips.length
+            ? `<section class="ip-lists"><div><h3>${esc(sourceA.hostname)}：Permitted IP</h3><ul>${names(
+                "A",
+              )
+                .map((x) => `<li>${esc(x)}</li>`)
+                .join(
+                  "",
+                )}</ul></div><div><h3>${esc(sourceB.hostname)}：Permitted IP</h3><ul>${names(
+                "B",
+              )
+                .map((x) => `<li>${esc(x)}</li>`)
+                .join("")}</ul></div></section>`
+            : "";
+        const securityMode = active === 23,
+          groupedEntryMode = [5, 6, 12, 14].includes(active),
+          groupedMode = securityMode || groupedEntryMode;
+        $("securityRules").hidden = !groupedMode;
+        $("standardTable").hidden = groupedMode;
+        if (securityMode) renderSecurityRules(shown);
+        if (groupedEntryMode) renderGroupedEntries(shown);
+        $("rows").innerHTML = shown.length
+          ? shown
+              .map(
+                (x) =>
+                  `<tr class="${x.status}"><td>${esc(x.key)}</td><td>${esc(x.field)}</td><td><span class="badge">${statusText[x.status]}</span></td><td>${esc(x.valueA || "—")}</td><td>${esc(x.valueB || "—")}</td><td>${esc(x.description)}</td></tr>`,
+              )
+              .join("")
+          : `<tr><td colspan="6" class="empty">沒有符合條件的結果</td></tr>`;
+        const st = {
+          allRows: allRows.length,
+          onlyB: allRows.filter((x) => x.status === "onlyB").length,
+          onlyA: allRows.filter((x) => x.status === "onlyA").length,
+          changed: allRows.filter((x) => x.status === "changed").length,
+          same: allRows.filter((x) => x.status === "same").length,
+        };
+        $("stats").innerHTML = [
+          ["總差異", st.allRows - st.same],
+          ["僅存在 B", st.onlyB],
+          ["僅存在 A", st.onlyA],
+          ["內容變更", st.changed],
+          ["一致參數", st.same],
+        ]
+          .map((x) => `<div><b>${x[1]}</b><span>${x[0]}</span></div>`)
+          .join("");
+      }
+      function exportExcel() {
+        if (!allRows.length) return;
+        const wb = XLSX.utils.book_new(),
+          add = (name, data) => {
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            ws["!cols"] = [
+              { wch: 22 },
+              { wch: 28 },
+              { wch: 28 },
+              { wch: 14 },
+              { wch: 34 },
+              { wch: 34 },
+              { wch: 52 },
+            ];
+            ws["!autofilter"] = { ref: `A1:G${data.length}` };
+            XLSX.utils.book_append_sheet(wb, ws, name.slice(0, 31));
+          };
+        add("封面摘要", [
+          ["比較項目", "參數總數", "差異數"],
+          ["來源 A", sourceA.hostname, `版本 ${sourceA.version}`],
+          ["來源 B", sourceB.hostname, `版本 ${sourceB.version}`],
+          ...ITEMS.map(([id, n]) => [
+            `${id}. ${n}`,
+            allRows.filter((x) => x.item === id).length,
+            diffCount(id),
+          ]),
+        ]);
+        ITEMS.forEach(([id, n]) =>
+          add(`${id}-${n}`, [
+            [
+              "類別",
+              "名稱／物件",
+              "參數",
+              "狀態",
+              `${sourceA.hostname} 值`,
+              `${sourceB.hostname} 值`,
+              "差異說明",
+            ],
+            ...allRows
+              .filter((x) => x.item === id)
+              .map((x) => [
+                x.category,
+                x.key,
+                x.field,
+                statusText[x.status],
+                x.valueA,
+                x.valueB,
+                x.description,
+              ]),
+          ]),
+        );
+        XLSX.writeFile(
+          wb,
+          `PA比對_${sourceA.hostname}_vs_${sourceB.hostname}_${new Date().toISOString().slice(0, 10)}.xlsx`,
+        );
+      }
+      function exportCurrentPage() {
+        if (!displayedRows.length) return;
+        const item = ITEMS.find((x) => x[0] === active),
+          includeInstructions = active === 23 && !$("hideSecurityInstructions").checked,
+          headers = ["類別", "名稱／物件", "參數", "狀態", `${sourceA.hostname} 值`, `${sourceB.hostname} 值`, "差異說明"],
+          data = [
+            includeInstructions ? [...headers, "補充指令"] : headers,
+            ...displayedRows.map((x) => {
+              const row = [x.category, x.key, x.field, statusText[x.status], x.valueA, x.valueB, x.description];
+              if (includeInstructions) row.push(securityCli(x.key, displayedRows.filter((candidate) => candidate.key === x.key)));
+              return row;
+            }),
+          ], ws = XLSX.utils.aoa_to_sheet(data);
+        ws["!cols"] = [{ wch: 22 }, { wch: 28 }, { wch: 28 }, { wch: 14 }, { wch: 34 }, { wch: 34 }, { wch: 52 }, ...(includeInstructions ? [{ wch: 46 }] : [])];
+        ws["!autofilter"] = { ref: `A1:${includeInstructions ? "H" : "G"}${data.length}` };
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, `${active}-${item[1]}`.slice(0, 31));
+        XLSX.writeFile(wb, `PA比對_${active}-${item[1]}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      }
+      ["fileA", "fileB"].forEach(
+        (id) => ($(id).onchange = () => load(id === "fileA" ? "A" : "B")),
+      );
+      $("compare").onclick = run;
+      $("export").onclick = exportExcel;
+      $("exportCurrent").onclick = exportCurrentPage;
+        ["onlyDiff", "ignoreSecurityFields", "hideSecurityInstructions", "status", "search"].forEach(
+        (id) => ($(id).oninput = render),
+      );
+    </script>
+  </body>
+</html>
